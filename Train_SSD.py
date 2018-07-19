@@ -155,11 +155,11 @@ def readTrainData(input_name, confing_image):
 
 
     # 入力画像の読み込み
-    color_img = cv.imread(common_params.images_dir + '/png/' + original_img_path + '.png', cv.IMREAD_COLOR)
+    color_img = cv.imread(common_params.images_dir + '/rgb/' + original_img_path + '.png', cv.IMREAD_COLOR)
 
     if color_img is None:
         print('画像が読み込めません')
-        print(common_params.images_dir + '/png/' + original_img_path + '.png')
+        print(common_params.images_dir + '/rgb/' + original_img_path + '.png')
         sys.exit(1)
 
     # 画像をSSDの入力サイズにリサイズ

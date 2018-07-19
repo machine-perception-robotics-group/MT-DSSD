@@ -53,7 +53,7 @@ arc_labels = ["Background",
               "Spray_Bottle",
               "Flashlights"]
 
-
+labels = arc_labels
 
 # Ground truth boxとDefault boxの重なり率を計算
 def jaccardOverlap(bbox1, bbox2):
