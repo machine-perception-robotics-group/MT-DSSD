@@ -129,7 +129,7 @@ max_sizes = [common_params.insize * 20 / 100.] + max_sizes
 # 学習データの読み込み
 def readTrainData(input_name, confing_image):
 
-    aug_p = open(common_params.images_dir + '/img_aug_param/' + input_name + '.txt', 'r')
+    aug_p = open(common_params.images_dir + '/train/img_aug_param/' + input_name + '.txt', 'r')
 
     in_line = aug_p.readline()
     opath = in_line.split(' \n')
@@ -155,11 +155,11 @@ def readTrainData(input_name, confing_image):
 
 
     # 入力画像の読み込み
-    color_img = cv.imread(common_params.images_dir + '/rgb/' + original_img_path + '.png', cv.IMREAD_COLOR)
+    color_img = cv.imread(common_params.images_dir + '/train/rgb/' + original_img_path + '.png', cv.IMREAD_COLOR)
 
     if color_img is None:
         print('画像が読み込めません')
-        print(common_params.images_dir + '/rgb/' + original_img_path + '.png')
+        print(common_params.images_dir + '/train/rgb/' + original_img_path + '.png')
         sys.exit(1)
 
     # 画像をSSDの入力サイズにリサイズ
@@ -186,36 +186,30 @@ def readTrainData(input_name, confing_image):
     df_boxes = []
     indices = []
     classes = []
-    categoryies = []
-    colors = []
 
     idx_tmp = []
 
     # positiveサンプルの読み込み
     pos_num = 0
-    f = open(common_params.images_dir + '/positives/' + input_name + '.txt', 'r')
+    f = open(common_params.images_dir + '/train/positives/' + input_name + '.txt', 'r')
     for rw in f:
         ln = rw.split(' ')
         classes.append(int(ln[1]))
-        categoryies.append(int(ln[2]))
-        colors.append(int(ln[3]))
-        gt_boxes.append([float(ln[2+2]), float(ln[3+2]), float(ln[4+2]), float(ln[5+2])])
-        df_boxes.append([float(ln[6+2]), float(ln[7+2]), float(ln[8+2]), float(ln[9+2])])
-        indices.append([int(ln[10+2]), int(ln[11+2]), int(ln[12+2]), int(ln[13+2])])
+        gt_boxes.append([float(ln[2]), float(ln[3]), float(ln[4]), float(ln[5])])
+        df_boxes.append([float(ln[6]), float(ln[7]), float(ln[8]), float(ln[9])])
+        indices.append([int(ln[10]), int(ln[11]), int(ln[12]), int(ln[13])])
         pos_num += 1
     f.close()
 
     # hard negativeサンプルの読み込み (最大でpositiveサンプル数の3倍)
     neg_num = 0
-    f = open(common_params.images_dir + '/negatives/' + input_name + '.txt', 'r')
+    f = open(common_params.images_dir + '/train/negatives/' + input_name + '.txt', 'r')
     for rw in f:
         ln = rw.split(' ')
         classes.append(int(ln[1]))
-        categoryies.append(int(ln[2]))
-        colors.append(int(ln[3]))
-        gt_boxes.append([float(ln[2+2]), float(ln[3+2]), float(ln[4+2]), float(ln[5+2])])
-        df_boxes.append([float(ln[2+2]), float(ln[3+2]), float(ln[4+2]), float(ln[5+2])])
-        idx_tmp.append([int(ln[10+2]), int(ln[11+2]), int(ln[12+2]), int(ln[13+2])])
+        gt_boxes.append([float(ln[2]), float(ln[3]), float(ln[4]), float(ln[5])])
+        df_boxes.append([float(ln[2]), float(ln[3]), float(ln[4]), float(ln[5])])
+        idx_tmp.append([int(ln[10]), int(ln[11]), int(ln[12]), int(ln[13])])
         neg_num += 1
     f.close()
 
@@ -227,12 +221,12 @@ def readTrainData(input_name, confing_image):
         indices.append(idx_tmp[perm[hn]])
 
 
-    return (input_img, gt_boxes, df_boxes, indices, classes, categoryies, colors, conf_img)
+    return (input_img, gt_boxes, df_boxes, indices, classes, conf_img)
 
 
 
 # 誤差関数
-def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, cat_batch, color_batch, bat_s, mining, volatile):
+def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, volatile):
 
     if mining:
         # hard negative mining有効時のクラスラベル
@@ -460,25 +454,21 @@ def feed_data():
             df_box_batch = []
             idx_batch = []
             cls_batch = []
-            cat_batch = []
-            color_batch = []
             conf_img_batch = []
 
             if i == batchsize:
                 for inc, x_data in enumerate(batch_pool):
-                    input_img, gt_boxes, df_boxes, indices, classes, categoryies, colors, conf_img = x_data.get()
+                    input_img, gt_boxes, df_boxes, indices, classes, conf_img = x_data.get()
                     img_batch.append(input_img)
                     gt_box_batch.append(gt_boxes)
                     df_box_batch.append(df_boxes)
                     idx_batch.append(indices)
                     cls_batch.append(classes)
-                    cat_batch.append(categoryies)
-                    color_batch.append(colors)
                     conf_img_batch.append(conf_img)
-                data_q.put((img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, cat_batch, color_batch, conf_img_batch, epoch + 1))
+                data_q.put((img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, conf_img_batch, epoch + 1))
                 i = 0
 
-            del img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, cat_batch, color_batch, conf_img_batch
+            del img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, conf_img_batch
 
         # 学習したモデルとoptimizerを保存
         if epoch + 1 >= 50:
@@ -538,7 +528,7 @@ def train_loop():
             res_q.put('train')
             continue
 
-        img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, cat_batch, color_batch, conf_img_batch, epoch_num = input_data
+        img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, conf_img_batch, epoch_num = input_data
 
         # ---教師ラベル確認用(画像の確認が不要な場合は以下14行をコメントアウト)----------------------------------
         # for b in xrange(0, len(conf_img_batch)):
@@ -580,7 +570,7 @@ def train_loop():
             mining = False
 
         # lossを計算
-        loss = lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, cat_batch, color_batch, bat_s, mining, volatile)
+        loss = lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, volatile)
 
         loss.backward()
 
@@ -588,7 +578,7 @@ def train_loop():
 
         res_q.put((float(loss.data), float(bat_s)))
 
-        del img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, cat_batch, color_batch, conf_img_batch
+        del img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, conf_img_batch
 
         del train_img
         del Loc1, Loc2, Loc3, Loc4, Loc5, Loc6
