@@ -16,7 +16,96 @@ from os import path
 import os
 
 import common_params
-import mbox_labels
+
+# クラスラベル (クラス名にはスペース(空白)は禁止)
+labels = [
+      "Background",             #0
+      "Binder",                 #1
+      "Balloons",               #2
+      "Baby_Wipes",             #3
+      "Toilet_Brush",           #4
+      "Toothbrushes",           #5
+      "Crayons",                #6
+      "Salts",                  #7
+      "DVD",                    #8
+      "Glue_Sticks",            #9
+      "Eraser",                 #10
+      "Scissors",               #11
+      "Green_Book",             #12
+      "Socks",                  #13
+      "Irish_Spring",           #14
+      "Paper_Tape",             #15
+      "Touch_Tissues",          #16
+      "Knit_Gloves",            #17
+      "Laugh_Out_Loud_Jokes",   #18
+      "Pencil_Cup",             #19
+      "Mini_Marbles",           #20
+      "Neoprene_Weight",        #21
+      "Wine_Glasses",           #22
+      "Water_Bottle",           #23
+      "Reynolds_Pie",           #24
+      "Reynolds_Wrap",          #25
+      "Robots_Everywhere",      #26
+      "Duct_Tape",              #27
+      "Sponges",                #28
+      "Speed_Stick",            #29
+      "Index_Cards",            #30
+      "Ice_Cube_Tray",          #31
+      "Table_Cover",            #32
+      "Measuring_Spoons",       #33
+      "Bath_Sponge",            #34
+      "Pencils",                #35
+      "Mousetraps",             #36
+      "Face_Cloth",             #37
+      "Tennis_Balls",           #38
+      "Spray_Bottle",           #39
+      "Flashlights"]            #40
+print(len(labels))
+
+class_color = np.array([
+           [  0,   0,   0],
+           [ 85,   0,   0],
+           [170,   0,   0],
+           [255,   0,   0],
+           [  0,  85,   0],
+           [ 85,  85,   0],
+           [170,  85,   0],
+           [255,  85,   0],
+           [  0, 170,   0],
+           [ 85, 170,   0],
+           [170, 170,   0],
+           [255, 170,   0],
+           [  0, 255,   0],
+           [ 85, 255,   0],
+           [170, 255,   0],
+           [255, 255,   0],
+           [  0,   0,  85],
+           [ 85,   0,  85],
+           [170,   0,  85],
+           [255,   0,  85],
+           [  0,  85,  85],
+           [ 85,  85,  85],
+           [170,  85,  85],
+           [255,  85,  85],
+           [  0, 170,  85],
+           [ 85, 170,  85],
+           [170, 170,  85],
+           [255, 170,  85],
+           [  0, 255,  85],
+           [ 85, 255,  85],
+           [170, 255,  85],
+           [255, 255,  85],
+           [  0,   0, 170],
+           [ 85,   0, 170],
+           [170,   0, 170],
+           [255,   0, 170],
+           [  0,  85, 170],
+           [ 85,  85, 170],
+           [170,  85, 170],
+           [255,  85, 170],
+           [  0, 170, 170]])
+
+class_color = class_color[:, ::-1]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dir', type=str, default='./')
@@ -126,22 +215,22 @@ def multiBoxDetection(cls_score_maps, localization_maps, num_dbox, min_size, max
                 ymax = (center_y + box_height / 2.) / img_height
             elif mbox_num == 3:
                 box_width = min_size * np.sqrt(1. / float(aspect_ratio[0]))
-                 box_height = min_size / np.sqrt(1. / float(aspect_ratio[0]))
-                 xmin = (center_x - box_width / 2.) / img_width
+                box_height = min_size / np.sqrt(1. / float(aspect_ratio[0]))
+                xmin = (center_x - box_width / 2.) / img_width
                 ymin = (center_y - box_height / 2.) / img_height
                 xmax = (center_x + box_width / 2.) / img_width
                 ymax = (center_y + box_height / 2.) / img_height
             elif mbox_num == 4:
                 box_width = min_size * np.sqrt(float(aspect_ratio[1]))
                 box_height = min_size / np.sqrt(float(aspect_ratio[1]))
-                 xmin = (center_x - box_width / 2.) / img_width
+                xmin = (center_x - box_width / 2.) / img_width
                 ymin = (center_y - box_height / 2.) / img_height
                 xmax = (center_x + box_width / 2.) / img_width
                 ymax = (center_y + box_height / 2.) / img_height
             elif mbox_num == 5:
                 box_width = min_size * np.sqrt(1. / float(aspect_ratio[1]))
-                 box_height = min_size / np.sqrt(1. / float(aspect_ratio[1]))
-                 xmin = (center_x - box_width / 2.) / img_width
+                box_height = min_size / np.sqrt(1. / float(aspect_ratio[1]))
+                xmin = (center_x - box_width / 2.) / img_width
                 ymin = (center_y - box_height / 2.) / img_height
                 xmax = (center_x + box_width / 2.) / img_width
                 ymax = (center_y + box_height / 2.) / img_height
@@ -377,8 +466,8 @@ for ls in img_list:
     f = open(output_dir + '/' + file_name + ".txt", 'w') # 結果書き出し用
     # 検出したbounding boxを画像に描画
     for i in xrange(0, len(final_detections)):
-        class_name = mbox_labels.class_labels[final_detections[i][4]]
-        cls_bgr = mbox_labels.class_BGR[final_detections[i][4]]
+        class_name = labels[final_detections[i][4]]
+        cls_bgr = class_color[final_detections[i][4]]
         string_space_cls = 260
         string_space_obj = 170
         p1 = int(final_detections[i][0] + offset_)
