@@ -1,7 +1,10 @@
 # MT-DSSD
 [Team MC^2 : ARC2017 RGB-D Dataset](http://mprg.jp/research/arc_dataset_2017_j)向けのサンプルコードです．
 
-2018/08/02 [MIRU2018で発表するポスター(33.1MB)](http://www.mprg.cs.chubu.ac.jp/~ryorsk/share/MIRU2018Poster_small.pdf)を公開中です．
+- 2018/08/02 [MIRU2018で発表するポスター(33.1MB)](http://www.mprg.cs.chubu.ac.jp/~ryorsk/share/MIRU2018Poster_small.pdf)を公開中です．
+- 2018/08/08 ポスターに間違いが2件ありました．お詫びして訂正致します．
+  - 提案手法/Loss function [L(y,c,g,s)] -> [L(y,c,l,s)]
+  - 評価実験/評価サンプルの枚数 [20枚] -> [200枚]
 
 ## Contents
 - SSD[1]
