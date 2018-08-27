@@ -92,7 +92,7 @@ serializers.load_npz('<Your Trained Model Path>', ssd_model)
 続いて，`Test_SSD.py`を実行して下さい．指定されたパスにある指定された拡張子の画像すべてを用いてテストを行います．
 
 ```
-python Test_SSD.py --dir '<Your Dataset Path>/test_known' --out './out' --type '.png' --gpu 0
+python Test_SSD.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --type '.png' --gpu 0
 ```
 
 下記の引数を与えることができます．
@@ -161,7 +161,7 @@ MODEL_PATH = "`<Your Trained Model Path>"
 続いて，`Test_SSD_seg_fast.py`を実行して下さい．指定されたパスにある指定された拡張子の画像すべてを用いてテストを行います．
 
 ```
-python Test_SSD_seg_fast.py --dir '<Your Dataset Path>/test_known' --out './out' --type '.png' --gpu 0
+python Test_SSD_seg_fast.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --type '.png' --gpu 0
 ```
 下記の引数を与えることができます．
 - `--webcam` (default = -1) : 1を指定するとWebCamから得られる画像を用いてリアルタイム検出を行います．
