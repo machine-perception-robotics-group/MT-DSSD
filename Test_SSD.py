@@ -346,7 +346,7 @@ if not path.exists(output_dir):
 print('SSD Netの読み込み中...')
 from SSD_Net import SSDNet
 ssd_model = SSDNet()
-serializers.load_npz('./models/SSD_epoch_41_without_mining.model', ssd_model)
+serializers.load_npz('./models/SSD_Seg_epoch_150_without_mining.model', ssd_model)
 print('-> 読み込み完了')
 
 

@@ -5,6 +5,8 @@
 - 2018/08/08 ポスターに間違いが2件ありました．お詫びして訂正致します．
   - 提案手法/Loss function [L(y,c,g,s)] -> [L(y,c,l,s)]
   - 評価実験/評価サンプルの枚数 [20枚] -> [200枚]
+- 2018/08/27 [学習モデル](http://www.mprg.cs.chubu.ac.jp/~ryorsk/share/GitHub_supp/models/)を公開しました．
+
 
 ## Contents
 - SSD[1]
