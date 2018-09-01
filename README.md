@@ -70,10 +70,10 @@ python make_list.py --mode 1
 ※`Train_SSD.sh`を実行することで，共通手順4, 5, 6と学習を連続して行うことができます．
 
 ### 7. 学習
-`Train_SSD.py`を実行して下さい．
+`Train_SSD.py`を実行して下さい．メモリサイズが足りない旨のエラーが出た場合は，`batchsize`を小さくしてください．
 
 ```
-python Train_SSD.py --batchsize 12 --epoch 130 --gpu 0 --loaderjob 8
+python Train_SSD.py --batchsize 12 --epoch 150 --gpu 0 --loaderjob 8
 ```
 
 下記の引数を与えることができます．
@@ -105,34 +105,36 @@ python Test_SSD.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --ty
 
 
 ## MT-DSSDの手順
-※`Train_SSD_seg.sh`を実行することで，共通手順4, 5, 6とMT-DSSDの手順7, 8, 9(学習)を連続して行うことができます．
+※`Train_SSD_seg.sh`を実行することで，共通手順4, 5, 6とMT-DSSDの手順7, 8, 9, 10(学習)を連続して行うことができます．
 
-### 6. セグメンテーション用画像の準備
+### 7. セグメンテーション用画像の準備
 セグメンテーション画像を学習用に変換する必要があります．
 `convertC2G_fast.py`を実行してください．
 ```
 python convertC2G_fast.py
 ```
 
-### 7. セグメンテーション画像のファイル名取得
+### 8. セグメンテーション画像のファイル名取得
 Data augmentation後の教師データとセグメンテーション教師データを紐付けるファイルを作成するために，`make_seglabel_aug_param.py`を実行します．
 ```
 python make_seglabel_aug_param.py
 ```
 
-### 8. セグメンテーション画像ファイル名の一覧取得
+### 9. セグメンテーション画像ファイル名の一覧取得
 `make_list.py`に，引数`--mode 3`を与えて実行します．
 ```
 python make_list.py --mode 3
 ```
 `seglabel_name_list.txt`に手順8で作成したファイルの名前一覧が保存されます．
 
-### 9. 学習
+### 10. 学習
+`Train_SSD_seg.py`を実行して下さい．メモリサイズが足りない旨のエラーが出た場合は，`batchsize`を小さくしてください．
+
 ```
-python Train_SSD_seg.py --batchsize 12 --epoch 130 --gpu 0 --loaderjob 8
+python Train_SSD_seg.py --batchsize 8 --epoch 150 --gpu 0 --loaderjob 8
 ```
 
-### 10. テスト
+### 11. テスト
 `Test_SSD_seg_fast.py`の下記の部分を書き換えて下さい．
 
 ```
