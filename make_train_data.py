@@ -1,4 +1,5 @@
-#coding: utf-8
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 from glob import glob
 from os import path
 import os
@@ -10,50 +11,7 @@ import numpy as np
 import common_params
 from data_augmentation import augmentation
 
-# クラスラベル (クラス名にはスペース(空白)は禁止)
-arc_labels = ["Background",
-              "Binder",
-              "Balloons",
-              "Baby_Wipes",
-              "Toilet_Brush",
-              "Toothbrushes",
-              "Crayons",
-              "Salts",
-              "DVD",
-              "Glue_Sticks",
-              "Eraser",
-              "Scissors",
-              "Green_Book",
-              "Socks",
-              "Irish_Spring",
-              "Paper_Tape",
-              "Touch_Tissues",
-              "Knit_Gloves",
-              "Laugh_Out_Loud_Jokes",
-              "Pencil_Cup",
-              "Mini_Marbles",
-              "Neoprene_Weight",
-              "Wine_Glasses",
-              "Water_Bottle",
-              "Reynolds_Pie",
-              "Reynolds_Wrap",
-              "Robots_Everywhere",
-              "Duct_Tape",
-              "Sponges",
-              "Speed_Stick",
-              "Index_Cards",
-              "Ice_Cube_Tray",
-              "Table_Cover",
-              "Measuring_Spoons",
-              "Bath_Sponge",
-              "Pencils",
-              "Mousetraps",
-              "Face_Cloth",
-              "Tennis_Balls",
-              "Spray_Bottle",
-              "Flashlights"]
-
-labels = arc_labels
+labels = common_params.arc_labels
 
 # Ground truth boxとDefault boxの重なり率を計算
 def jaccardOverlap(bbox1, bbox2):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import chainer
@@ -70,4 +70,3 @@ class VGGNet(chainer.Chain):
 
 
         return (k1, k2)
-

@@ -1,4 +1,5 @@
-#coding: utf-8
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 import cv2 as cv
 import sys
 import math

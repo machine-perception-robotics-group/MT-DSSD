@@ -1,5 +1,6 @@
-#coding: utf-8
-# python Test_SSD_seg_fast.py --indir /Volumes/External/arcdataset/test/rgb/
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# python Test_SSD_seg_fast.py --indir /Volumes/External/arcdataset/public/ARCdataset_png/test_known/rgb
 
 import numpy as np
 import chainer
@@ -22,7 +23,7 @@ from os import path
 import os
 
 # 学習モデルのパス
-MODEL_PATH = "./models/SSD_Seg_epoch_150_without_mining.model"
+MODEL_PATH = "./models/SSD_Seg_epoch_130_without_mining.model"
 
 # WebCamでの検出時に画像を保存する(容量圧迫注意!!) True:する/False:しない
 FORCED_SAVE = False
@@ -34,94 +35,10 @@ DISPLAY = True
 FRAMELATE = True
 
 # クラスラベル (クラス名にはスペース(空白)は禁止)
-labels = [
-      "Background",             #0
-      "Binder",                 #1
-      "Balloons",               #2
-      "Baby_Wipes",             #3
-      "Toilet_Brush",           #4
-      "Toothbrushes",           #5
-      "Crayons",                #6
-      "Salts",                  #7
-      "DVD",                    #8
-      "Glue_Sticks",            #9
-      "Eraser",                 #10
-      "Scissors",               #11
-      "Green_Book",             #12
-      "Socks",                  #13
-      "Irish_Spring",           #14
-      "Paper_Tape",             #15
-      "Touch_Tissues",          #16
-      "Knit_Gloves",            #17
-      "Laugh_Out_Loud_Jokes",   #18
-      "Pencil_Cup",             #19
-      "Mini_Marbles",           #20
-      "Neoprene_Weight",        #21
-      "Wine_Glasses",           #22
-      "Water_Bottle",           #23
-      "Reynolds_Pie",           #24
-      "Reynolds_Wrap",          #25
-      "Robots_Everywhere",      #26
-      "Duct_Tape",              #27
-      "Sponges",                #28
-      "Speed_Stick",            #29
-      "Index_Cards",            #30
-      "Ice_Cube_Tray",          #31
-      "Table_Cover",            #32
-      "Measuring_Spoons",       #33
-      "Bath_Sponge",            #34
-      "Pencils",                #35
-      "Mousetraps",             #36
-      "Face_Cloth",             #37
-      "Tennis_Balls",           #38
-      "Spray_Bottle",           #39
-      "Flashlights"]            #40
+labels = common_params.arc_labels
 print(len(labels))
 
-class_color = np.array([
-           [  0,   0,   0],
-           [ 85,   0,   0],
-           [170,   0,   0],
-           [255,   0,   0],
-           [  0,  85,   0],
-           [ 85,  85,   0],
-           [170,  85,   0],
-           [255,  85,   0],
-           [  0, 170,   0],
-           [ 85, 170,   0],
-           [170, 170,   0],
-           [255, 170,   0],
-           [  0, 255,   0],
-           [ 85, 255,   0],
-           [170, 255,   0],
-           [255, 255,   0],
-           [  0,   0,  85],
-           [ 85,   0,  85],
-           [170,   0,  85],
-           [255,   0,  85],
-           [  0,  85,  85],
-           [ 85,  85,  85],
-           [170,  85,  85],
-           [255,  85,  85],
-           [  0, 170,  85],
-           [ 85, 170,  85],
-           [170, 170,  85],
-           [255, 170,  85],
-           [  0, 255,  85],
-           [ 85, 255,  85],
-           [170, 255,  85],
-           [255, 255,  85],
-           [  0,   0, 170],
-           [ 85,   0, 170],
-           [170,   0, 170],
-           [255,   0, 170],
-           [  0,  85, 170],
-           [ 85,  85, 170],
-           [170,  85, 170],
-           [255,  85, 170],
-           [  0, 170, 170]])
-
-class_color = class_color[:, ::-1]
+class_color = common_params.arc_class_color[:, ::-1]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--webcam', '-c', type = int, default = -1, help = 'webcam ID / -1 :image file')
@@ -477,6 +394,8 @@ def saveDetection(final_detections, out_img, filename):
 def detection(img, ssd_model, filename, min_sizes, max_sizes):
     # タイマーリセット
     total_time = 0.0
+    processing_time = 0.0
+    drawing_time = 0.0
     fps_start_time = time.time()
 
     save_flag = (args.webcam < 0) or FORCED_SAVE # WebCamモードオフまたは強制保存オンで保存フラグ
@@ -502,6 +421,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     ssd_model.train = False
     elapsed_time = time.time() - start
     print ('Resize : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # SSDのforward
@@ -509,9 +429,10 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6, Seg = ssd_model(x_data)
     elapsed_time = time.time() - start
     print ('SSD_forward : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
-    # 高速化のためCPUで処理
+    # CPUで処理
     start = time.time()
     Loc1, Cls1 = to_CPU(Loc1, Cls1)
     Loc2, Cls2 = to_CPU(Loc2, Cls2)
@@ -520,21 +441,34 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     Loc5, Cls5 = to_CPU(Loc5, Cls5)
     Loc6, Cls6 = to_CPU(Loc6, Cls6)
     elapsed_time = time.time() - start
-    print ('to CPU : ', elapsed_time)
+    print ('to_CPU : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # セグメンテーション推論
     start = time.time()
-    pred = F.softmax(Seg)
-    pred.to_cpu()
-    seg_result = np.squeeze(pred.data[0,:,:,:])
-    seg_result_max = np.argmax(seg_result, axis=0)
+    if False:
+        # 推論時にSoftmaxを用いる（低速）
+        pred = F.softmax(Seg)
+        pred.to_cpu()
+        seg_result = np.squeeze(pred.data[0,:,:,:])
+        seg_result_max = np.argmax(seg_result, axis=0)
+    else:
+        # Softmaxなし（高速）
+        Seg.to_cpu()
+        pred = np.argmax(Seg.data, axis=1)
+        seg_result_max = np.squeeze(pred[0,:,:])
 
     # セグメンテーション結果をグレー画像でもっておく(保存用/外接矩形抽出用)
     gray = seg_result_max.astype(np.uint8)
-    if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_gray/' + filename + '.png', gray)
-    gray = cv.resize(gray, (1280, 960), interpolation = cv.INTER_NEAREST)
+    gray_large = cv.resize(gray, (1280, 960), interpolation = cv.INTER_NEAREST)
+    elapsed_time = time.time() - start
+    print ('seg_estimate : ', elapsed_time)
+    processing_time += elapsed_time
+    total_time += elapsed_time
 
+    # セグメンテーション保存
+    start = time.time()
     if DISPLAY:
         # セグメンテーション結果をカラーに戻す
         rgb_r = seg_result_max.copy()
@@ -555,15 +489,21 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
         if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results/' + filename + '.png', rgb)
         rgb = cv.resize(rgb, (1280, 960), interpolation = cv.INTER_NEAREST)
         if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_large/' + filename + '.png', rgb)
+        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_gray/' + filename + '.png', gray)
 
         rgb_s = rgb.copy()
+        elapsed_time = time.time() - start
+        print ('seg_save : ', elapsed_time)
+        drawing_time += elapsed_time
+        total_time += elapsed_time
 
     sbox = []
 
     # セグメンテーションの外接矩形を取得
+    start = time.time()
     #for g in xrange(0, len(classes)): # OLD
     for g in xrange(1, len(labels)+1):
-        gray_extract = gray.copy()
+        gray_extract = gray_large.copy()
         #gray_extract[gray_extract != classes[g]] = 0 # OLD
         gray_extract[gray_extract != g] = 0
         #ret, thresh = cv.threshold(gray_extract, classes[g]-1, 255, 0) # OLD
@@ -587,7 +527,8 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
             #cv.waitKey()
             #cv.destroyAllWindows()
     elapsed_time = time.time() - start
-    print ('seg : ', elapsed_time)
+    print ('b-box extract : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # 各階層のconfidence mapのsoftmaxを計算
@@ -600,6 +541,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     cls_score6 = mboxSoftmax(Cls6[0], common_params.num_of_classes, common_params.num_boxes[5])
     elapsed_time = time.time() - start
     print ('softmax : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # クラス確率の高いdefault boxの検出
@@ -611,7 +553,8 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     offsets5, default_boxes5, class_labels5, class_scores5 = multiBoxDetection(cls_score5, Loc5[0], common_params.num_boxes[4], common_params.num_of_classes, common_params.num_of_offset_dims, min_sizes[4], max_sizes[4], common_params.steps[4], common_params.aspect_ratios[4])
     offsets6, default_boxes6, class_labels6, class_scores6 = multiBoxDetection(cls_score6, Loc6[0], common_params.num_boxes[5], common_params.num_of_classes, common_params.num_of_offset_dims, min_sizes[5], max_sizes[5], common_params.steps[5], common_params.aspect_ratios[5])
     elapsed_time = time.time() - start
-    print ('multiboxdetection : ', elapsed_time)
+    print ('multibox_detection : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # オフセットベクトルによりdefault boxを補正
@@ -624,6 +567,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     candidates6 = candidatesDetection(offsets6, default_boxes6, class_labels6, class_scores6, common_params.num_of_classes, img, common_params.loc_var)
     elapsed_time = time.time() - start
     print ('localization : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # 各階層のbounding box候補を統合
@@ -639,7 +583,8 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
         all_candidate[i].extend(candidates6[i])
     #print(all_candidate)
     elapsed_time = time.time() - start
-    print ('extend : ', elapsed_time)
+    print ('candidate_extend : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # non-maximum suppresionによりbounding boxの最終結果を出力
@@ -647,7 +592,8 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     final_detections = nonMaximumSuppresion(all_candidate, sbox)
     #final_detections = all_candidate
     elapsed_time = time.time() - start
-    print ('suppresion : ', elapsed_time)
+    print ('non-max_supp : ', elapsed_time)
+    processing_time += elapsed_time
     total_time += elapsed_time
 
     # 画像保存
@@ -655,11 +601,14 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     out_img = saveDetection(final_detections, out_img, filename)
     elapsed_time = time.time() - start
     print ('save detection : ', elapsed_time)
+    drawing_time += elapsed_time
     total_time += elapsed_time
 
     fps_end_time = time.time()
     fps = 1 / total_time
     print ('Total : ', total_time)
+    print ('Processing Time : ', processing_time)
+    print ('Drawing Time : ', drawing_time)
     print('FPS: ', fps)
     print('sec2: ', fps_end_time - fps_start_time)
 

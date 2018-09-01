@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #segmentation labelのaug paramを生成
 #やってることは「セグメンテーション画像名 + '_' + Augmentation連番」をファイルに保存するだけ
@@ -20,9 +21,9 @@ def saveTxt(filePath, data):
 
 if __name__ == "__main__":
     #画像リスト
-    inDir = "/home/ryorsk/SSDsegmentation/for_MTDSSD/train/seglabel/"
+    inDir = path.join(common_params.images_dir, "train", "seglabel")
     #ラベル出力先
-    outDir = "/home/ryorsk/SSDsegmentation/for_MTDSSD/train/seglabel_aug_param/"
+    outDir = path.join(common_params.images_dir, "train", "seglabel_aug_param")
 
     imageList = glob.glob(inDir + "*.png")
     imageList.sort()

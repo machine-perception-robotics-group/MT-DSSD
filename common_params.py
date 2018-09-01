@@ -1,11 +1,12 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import cv2 as cv
 
 # 学習画像のディレクトリ
-images_dir = '/home/ryorsk/SSDsegmentation/for_MTDSSD'
+images_dir = "/home/ryorsk/SSDsegmentation/for_MTDSSD"
 
 # 学習モデル,ロス値の保存ディレクトリ ※頻繁にアクセスがあるのでオンラインストレージ領域にしない
-save_model_dir = './models'
+save_model_dir = "/home/ryorsk/SSDsegmentation/models"
 
 # SSDの入力画像サイズ
 insize = 300
@@ -64,3 +65,91 @@ weight_decay = 0.0005
 lr_step = 0.97
 lr_change_epoch = 80
 lower_lr = 10e-4
+
+# ARCクラスラベル (クラス名にはスペース(空白)は禁止)
+arc_labels = [
+      "Background",             #0
+      "Binder",                 #1
+      "Balloons",               #2
+      "Baby_Wipes",             #3
+      "Toilet_Brush",           #4
+      "Toothbrushes",           #5
+      "Crayons",                #6
+      "Salts",                  #7
+      "DVD",                    #8
+      "Glue_Sticks",            #9
+      "Eraser",                 #10
+      "Scissors",               #11
+      "Green_Book",             #12
+      "Socks",                  #13
+      "Irish_Spring",           #14
+      "Paper_Tape",             #15
+      "Touch_Tissues",          #16
+      "Knit_Gloves",            #17
+      "Laugh_Out_Loud_Jokes",   #18
+      "Pencil_Cup",             #19
+      "Mini_Marbles",           #20
+      "Neoprene_Weight",        #21
+      "Wine_Glasses",           #22
+      "Water_Bottle",           #23
+      "Reynolds_Pie",           #24
+      "Reynolds_Wrap",          #25
+      "Robots_Everywhere",      #26
+      "Duct_Tape",              #27
+      "Sponges",                #28
+      "Speed_Stick",            #29
+      "Index_Cards",            #30
+      "Ice_Cube_Tray",          #31
+      "Table_Cover",            #32
+      "Measuring_Spoons",       #33
+      "Bath_Sponge",            #34
+      "Pencils",                #35
+      "Mousetraps",             #36
+      "Face_Cloth",             #37
+      "Tennis_Balls",           #38
+      "Spray_Bottle",           #39
+      "Flashlights"]            #40
+
+# クラスの色
+arc_class_color = np.array([
+           [  0,   0,   0],
+           [ 85,   0,   0],
+           [170,   0,   0],
+           [255,   0,   0],
+           [  0,  85,   0],
+           [ 85,  85,   0],
+           [170,  85,   0],
+           [255,  85,   0],
+           [  0, 170,   0],
+           [ 85, 170,   0],
+           [170, 170,   0],
+           [255, 170,   0],
+           [  0, 255,   0],
+           [ 85, 255,   0],
+           [170, 255,   0],
+           [255, 255,   0],
+           [  0,   0,  85],
+           [ 85,   0,  85],
+           [170,   0,  85],
+           [255,   0,  85],
+           [  0,  85,  85],
+           [ 85,  85,  85],
+           [170,  85,  85],
+           [255,  85,  85],
+           [  0, 170,  85],
+           [ 85, 170,  85],
+           [170, 170,  85],
+           [255, 170,  85],
+           [  0, 255,  85],
+           [ 85, 255,  85],
+           [170, 255,  85],
+           [255, 255,  85],
+           [  0,   0, 170],
+           [ 85,   0, 170],
+           [170,   0, 170],
+           [255,   0, 170],
+           [  0,  85, 170],
+           [ 85,  85, 170],
+           [170,  85, 170],
+           [255,  85, 170],
+           [  0, 170, 170]])

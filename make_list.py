@@ -1,4 +1,6 @@
-#coding: utf-8
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from glob import glob
 from os import path
 import os
