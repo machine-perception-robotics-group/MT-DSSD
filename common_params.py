@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import cv2 as cv
+import numpy as np
 
 # 学習画像のディレクトリ
 images_dir = "/home/ryorsk/SSDsegmentation/for_MTDSSD"
