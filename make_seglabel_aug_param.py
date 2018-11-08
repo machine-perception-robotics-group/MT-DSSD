@@ -21,7 +21,7 @@ def saveTxt(filePath, data):
 
 if __name__ == "__main__":
     #画像リスト
-    inDir = path.join(common_params.images_dir, "train", "seglabel")
+    inDir = path.join(common_params.images_dir, "train", "seglabel/")
     #ラベル出力先
     outDir = path.join(common_params.images_dir, "train", "seglabel_aug_param")
 
