@@ -25,11 +25,11 @@ if __name__ == "__main__":
     #ラベル出力先
     outDir = path.join(common_params.images_dir, "train", "seglabel_aug_param")
 
-    imageList = glob.glob(inDir + "*.png")
+    imageList = glob.glob(path.join(inDir, "*.png"))
     imageList.sort()
 
     for imagePath in imageList:
         print("Processing:" + imagePath)
         for i in range(1, common_params.augmentation_factor + 1):
             row = imagePath[imagePath.rfind('/')+1:imagePath.rfind('.')]
-            saveTxt(outDir + row + '_' + str(i) + '.txt', row + ' ')
+            saveTxt(path.join(outDir, row + '_' + str(i) + '.txt'), row + ' ')
