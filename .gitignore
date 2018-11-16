@@ -112,6 +112,8 @@ dmypy.json
 # User defined
 /.DS_Store
 
-models/\.DS_Store
+models/
+
+out/
 
 pretrained_model/\.DS_Store

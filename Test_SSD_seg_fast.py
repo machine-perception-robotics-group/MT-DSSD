@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# python Test_SSD_seg_fast.py --indir /Volumes/External/arcdataset/public/ARCdataset_png/test_known/rgb
+# python Test_SSD_seg_fast.py --indir /Volumes/External/arcdataset/public/ARCdataset_png/test_known/rgb --type '.png'
 
 import numpy as np
 import chainer
@@ -23,7 +23,7 @@ from os import path
 import os
 
 # 学習モデルのパス
-MODEL_PATH = "./models/SSD_Seg_epoch_130_without_mining.model"
+MODEL_PATH = "./models/DSSD_Seg_epoch_150_without_mining.model"
 
 # WebCamでの検出時に画像を保存する(容量圧迫注意!!) True:する/False:しない
 FORCED_SAVE = False
@@ -44,11 +44,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--webcam', '-c', type = int, default = -1, help = 'webcam ID / -1 :image file')
 parser.add_argument('--indir', '-i', type = str, default = 'none', help = 'input dir')
 parser.add_argument('--outdir', '-o', type = str, default = './out/', help = 'output dir of results')
+parser.add_argument('--type', '-t', type=str, default='.jpg', help = 'input image type')
 parser.add_argument('--gpu', '-g', type = int, default = -1, help = 'GPU ID (negative value indicates CPU)')
 args = parser.parse_args()
 
 IN_DIR = args.indir
 OUT_DIR = args.outdir
+IN_TYPE = args.type
+OUT_TYPE = '.png'
 
 if args.gpu >= 0:
     cuda.check_cuda_available()
@@ -384,7 +387,7 @@ def saveDetection(final_detections, out_img, filename):
                     f.close()
     # 画像保存
     if save_flag:
-        cv.imwrite(OUT_DIR + '/detection/' + filename + '.png', out_img)
+        cv.imwrite(OUT_DIR + '/detection/' + filename + OUT_TYPE, out_img)
 
     #cv.namedWindow("Final Detections", cv.WINDOW_NORMAL)
     #out_img_small = cv.resize(out_img, (int(out_img.shape[1] * 0.8), int(out_img.shape[0] * 0.8)))
@@ -486,10 +489,10 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
         rgb[:,:,2] = rgb_b
 
         rgb = rgb.astype(np.uint8)
-        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results/' + filename + '.png', rgb)
+        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results/' + filename + OUT_TYPE, rgb)
         rgb = cv.resize(rgb, (1280, 960), interpolation = cv.INTER_NEAREST)
-        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_large/' + filename + '.png', rgb)
-        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_gray/' + filename + '.png', gray)
+        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_large/' + filename + OUT_TYPE, rgb)
+        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_gray/' + filename + OUT_TYPE, gray)
 
         rgb_s = rgb.copy()
         elapsed_time = time.time() - start
@@ -672,7 +675,7 @@ def main():
 
     else:
         # Webcamじゃない場合は画像リスト読み込み
-        color_img = glob(path.join(IN_DIR, '*.png'))
+        color_img = glob(path.join(IN_DIR, '*' + IN_TYPE))
         color_img.sort()
 
         # 読み込んだリストを順次検出

@@ -26,7 +26,7 @@ class_color = common_params.arc_class_color[:, ::-1]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dir', type=str, default='./')
-parser.add_argument('--out', type=str, default='./')
+parser.add_argument('--out', type=str, default='./out/')
 parser.add_argument('--type', type=str, default='.jpg')
 parser.add_argument('--gpu', '-g', default = -1, type = int, help='GPU ID (negative value indicates CPU)')
 args = parser.parse_args()

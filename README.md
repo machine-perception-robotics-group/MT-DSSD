@@ -99,7 +99,7 @@ python Test_SSD.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --ty
 
 下記の引数を与えることができます．
 - `--dir` (default='./') : テスト用画像のあるパス
-- `--out` (default='./') : 検出結果の出力先
+- `--out` (default='./out/') : 検出結果の出力先
 - `--type` (default='.jpg') : テスト用画像の拡張子
 - `--gpu` (default = -1) : GPU ID．マイナス値にするとCPUを用いる．
 
@@ -146,12 +146,13 @@ MODEL_PATH = "`<Your Trained Model Path>"
 続いて，`Test_SSD_seg_fast.py`を実行して下さい．指定されたパスにある指定された拡張子の画像すべてを用いてテストを行います．
 
 ```
-python Test_SSD_seg_fast.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --type '.png' --gpu 0
+python Test_SSD_seg_fast.py --indir '<Your Dataset Path>/test_known/rgb' --outdir './out' --type '.png' --gpu 0
 ```
 下記の引数を与えることができます．
 - `--webcam` (default = -1) : 1を指定するとWebCamから得られる画像を用いてリアルタイム検出を行います．
 - `--indir` : テスト用画像のあるパス
 - `--outdir` (default = './out/') : 検出結果の出力先
+- `--type` (default='.jpg') : テスト用画像の拡張子
 - `--gpu` (default = -1) : GPU ID．マイナス値にするとCPUを用いる．
 
 
