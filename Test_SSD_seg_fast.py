@@ -98,15 +98,15 @@ def mboxSoftmax(confidence_maps, num_classes, num_boxes):
 
     bs = 0
     be = num_classes
-    for b in xrange(0, num_boxes):
+    for b in range(0, num_boxes):
 
         t = confidence_maps[bs : be, :, :]
 
         total = 0
-        for i in xrange(0, t.shape[0]):
+        for i in range(0, t.shape[0]):
             total += np.exp(t[i, :, :])
 
-        for i in xrange(0, t.shape[0]):
+        for i in range(0, t.shape[0]):
             s[bs + i, :, :] = np.exp(t[i, :, :]) / total
 
         bs = be
@@ -135,7 +135,7 @@ def multiBoxDetection(cls_score_maps, localization_maps, num_dbox, num_class, of
     img_height = common_params.insize
 
     map_size = cls_score_maps.shape[1] * cls_score_maps.shape[2]
-    for i in xrange(0, map_size):
+    for i in range(0, map_size):
 
         c = int(i % cls_score_maps.shape[1])
         r = int(i / cls_score_maps.shape[1])
@@ -146,7 +146,7 @@ def multiBoxDetection(cls_score_maps, localization_maps, num_dbox, num_class, of
 
         bs = 0
         be = num_class
-        for b in xrange(0, num_dbox):
+        for b in range(0, num_dbox):
 
             max_val = np.max(cls_score_maps[bs : be, r, c])
             max_idx = int(np.argmax(cls_score_maps[bs : be, r, c]))
@@ -224,10 +224,10 @@ def candidatesDetection(offsets, default_boxes, class_labels, class_scores, num_
     img_height = color_img.shape[0]
 
     candidates = []
-    for i in xrange(0, num_classes):
+    for i in range(0, num_classes):
         candidates.append([])
 
-    for det in xrange(0, len(class_labels)):
+    for det in range(0, len(class_labels)):
 
         pred_xmin = (default_boxes[det][0] + offsets[det][0] * variance)
         pred_ymin = (default_boxes[det][1] + offsets[det][1] * variance)
@@ -300,11 +300,11 @@ def nonMaximumSuppresion(candidates, sbox):
 
     overlap_th = 0.2
 
-    for i in xrange(0, len(candidates)):
+    for i in range(0, len(candidates)):
         box_num = len(candidates[i])
 
-        for j in xrange(0, box_num):
-            for s in xrange(0, len(sbox)):
+        for j in range(0, box_num):
+            for s in range(0, len(sbox)):
                 if i == sbox[s][4]:
                     #print(sbox[s][4])
                     seg_overlap = seg_jaccardOverlap(candidates[i][j], sbox[s])
@@ -314,21 +314,21 @@ def nonMaximumSuppresion(candidates, sbox):
                     #print(seg_overlap)
 
 
-    for i in xrange(0, len(candidates)):
+    for i in range(0, len(candidates)):
 
         box_num = len(candidates[i])
 
         js = 0
-        for j in xrange(0, box_num):
+        for j in range(0, box_num):
             ks = js + 1
-            for k in xrange(j + 1, box_num):
+            for k in range(j + 1, box_num):
 
                 if ks >= len(candidates[i]) or js >= len(candidates[i]):
                     continue
 
                 overlap = jaccardOverlap(candidates[i][js], candidates[i][ks])
 
-                #for s in xrange(len(sbox)):
+                #for s in range(len(sbox)):
                 #    if i == sbox[s][4]:
                     #    print(sbox[s][4])
                     #    seg_overlap = seg_jaccardOverlap(candidates[i][js], sbox[s])
@@ -358,10 +358,10 @@ def saveDetection(final_detections, out_img, filename):
     # 検出したbounding boxを画像に描画
     offset_ = 0.5
     font = cv.FONT_HERSHEY_SIMPLEX
-    for i in xrange(0, len(final_detections)):
+    for i in range(0, len(final_detections)):
             class_name = labels[i]
             color = class_color[i]
-            for j in xrange(0, len(final_detections[i])):
+            for j in range(0, len(final_detections[i])):
                 p1 = int(final_detections[i][j][0] + offset_)
                 p2 = int(final_detections[i][j][1] + offset_)
                 p3 = int(final_detections[i][j][2] + offset_)
@@ -504,8 +504,8 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
 
     # セグメンテーションの外接矩形を取得
     start = time.time()
-    #for g in xrange(0, len(classes)): # OLD
-    for g in xrange(1, len(labels)+1):
+    #for g in range(0, len(classes)): # OLD
+    for g in range(1, len(labels)+1):
         gray_extract = gray_large.copy()
         #gray_extract[gray_extract != classes[g]] = 0 # OLD
         gray_extract[gray_extract != g] = 0
@@ -515,7 +515,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
 
         max_contours = 0
         max_i = 0
-        for i in xrange(len(contours)):
+        for i in range(len(contours)):
             if max_contours <= len(contours[i]):
                 max_contours = len(contours[i])
                 max_i = i
@@ -576,7 +576,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     # 各階層のbounding box候補を統合
     start = time.time()
     all_candidate = []
-    for i in xrange(0, common_params.num_of_classes):
+    for i in range(0, common_params.num_of_classes):
         all_candidate.append([])
         all_candidate[i].extend(candidates1[i])
         all_candidate[i].extend(candidates2[i])
@@ -654,7 +654,7 @@ def main():
     step = int(math.floor((common_params.max_ratio - common_params.min_ratio) / (len(common_params.mbox_source_layers) - 2)))
     min_sizes = []
     max_sizes = []
-    for ratio in xrange(common_params.min_ratio, common_params.max_ratio + 1, step):
+    for ratio in range(common_params.min_ratio, common_params.max_ratio + 1, step):
             min_sizes.append(common_params.insize * ratio / 100.)
             max_sizes.append(common_params.insize * (ratio + step) / 100.)
     min_sizes = [common_params.insize * 10 / 100.] + min_sizes
@@ -666,7 +666,7 @@ def main():
         cap = cv.VideoCapture(args.webcam)
         while True:
             if FRAMELATE: start_time = time.time()
-            for i in xrange(0,5):
+            for i in range(0,5):
                 ret, img = cap.read()
             if img is None:
                 print('[Error] WebCamから画像が取得できません')
@@ -679,7 +679,7 @@ def main():
         color_img.sort()
 
         # 読み込んだリストを順次検出
-        for lf in xrange(len(color_img)):
+        for lf in range(len(color_img)):
             img = cv.imread(color_img[lf])
             filename, ext = os.path.splitext(os.path.basename(color_img[lf]))
 

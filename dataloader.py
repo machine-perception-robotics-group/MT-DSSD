@@ -21,7 +21,7 @@ class Dataloader:
         image = np.zeros((batch, height, width, 3)).astype(np.float32)
         label = np.zeros((batch, height, width)).astype(np.int32)
 
-        for counter in xrange(batch):
+        for counter in range(batch):
             choice = random.randint(0, total_image-1)
 
             img = cv2.imread(IMAGE_FILE[choice], 1)
