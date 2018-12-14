@@ -1,5 +1,5 @@
 FROM python:3
-FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda:9.2-devel-ubuntu16.04
 
 ENV PATH /usr/lib/ccache:$PATH
 
@@ -9,15 +9,14 @@ RUN apt-get -y update && apt-get -y upgrade && \
 RUN apt-get install -y python3-pip python3-dev && \
   apt-get clean
 
-RUN apt-get install -y language-pack-ja-base language-pack-ja
-  echo 'export LANG=ja_JP.UTF-8' >> ~/.bashrc
+RUN apt-get install -y language-pack-ja-base language-pack-ja && \
+  echo 'export LANG=ja_JP.UTF-8' >> ~/.bashrc && \
   echo 'export LC_CTYPE=ja_JP.UTF-8' >> ~/.bashrc
 
 RUN echo 'alias python=python3' >> ~/.bashrc
 RUN echo 'alias pip=pip3' >> ~/.bashrc
 
-RUN apt-get -y -q install python-opencv && \
-    apt-get -y -q install python-tk && \
+RUN apt-get -y -q install python-tk && \
     apt-get -y install vim && \
     apt-get -y install wget
 
