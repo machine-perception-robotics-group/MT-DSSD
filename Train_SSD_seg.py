@@ -28,7 +28,7 @@ import chainer.functions as F
 from glob import glob
 from os import path
 
-import _pickle as cPickle
+import cPickle
 import cv2 as cv
 
 import common_params
@@ -688,7 +688,8 @@ def train_loop():
         # lossを計算
         loss = lossFunction(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label)
 
-        loss.backward()
+        with chainer.using_config('use_cudnn', 'never'):
+            loss.backward()
 
         optimizer.update()
 

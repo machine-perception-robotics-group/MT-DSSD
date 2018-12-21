@@ -103,8 +103,8 @@ class SSDNet(chainer.Chain):
         k1 = F.relu(self.conv4_3(k1))
         #k1 = F.relu(self.bn4_3(self.conv4_3(k1), test = not self.train))
 
-        Loc1 = self.conv4_3_mbox_loc(self.bn4_3(k1, test = not self.train)) # Box_Estimator_1
-        Cls1 = self.conv4_3_mbox_cls(self.bn4_3(k1, test = not self.train)) # Class_Classifier_1
+        Loc1 = self.conv4_3_mbox_loc(self.bn4_3(k1)) # Box_Estimator_1
+        Cls1 = self.conv4_3_mbox_cls(self.bn4_3(k1)) # Class_Classifier_1
 
 
         #L1 = self.conv4_3_norm_mbox_loc(F.local_response_normalization(k1))  # Box_Estimator_1
