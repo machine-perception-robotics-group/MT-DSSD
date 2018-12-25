@@ -41,7 +41,7 @@ from VGG_Net import VGGNet
 ・hard neg mining時に保存するモデルの名前を変える
 ・モデルのロス保存が怪しい
 ・4epochごとのhard neg mining
-
+・サンプルによってindicesの要素数がゼロになって止まる
 """
 
 parser = argparse.ArgumentParser()  #パーサーを作る
@@ -86,14 +86,16 @@ class TrainChain(chainer.Chain):
         super(TrainChain, self).__init__()
         with self.init_scope():
             self.model = model
-            self.today_dir_path = today_dir_path
-            self.epoch_num = 0
+        self.today_dir_path = today_dir_path
+        self.epoch_num = 0
 
     def __call__(self, img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, conf_img_batch, seglabel_batch):
         print("-----------START FORWARD-----------------------------------------")
         bat_s = args.batchsize
         #train_img = chainer.Variable(xp.array(img_batch))
         #seg_label = chainer.Variable(xp.array(seglabel_batch, np.int32))
+        #train_img = chainer.Variable(img_batch)
+        #seg_label = chainer.Variable(seglabel_batch)
         today_dir_path = self.today_dir_path
         train_img = img_batch
         seg_label = seglabel_batch
@@ -115,18 +117,20 @@ class TrainChain(chainer.Chain):
             mining = False
 
         # lossを計算
-        loss_cls, loss_loc, loss_seg = loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label, today_dir_path)
-        loss = (loss_cls + loss_loc + loss_seg) / 3
+        print("-----------CALC LOSS-----------------------------------------")
+        loss_cls, loss_loc, loss_seg = loss_function_new(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label, today_dir_path)
+        loss = (loss_cls + loss_loc + loss_seg) / 3.
+        print(loss)
+        print(type(loss))
 
         chainer.reporter.report(
             {'loss': loss, 'loss/cls': loss_cls, 'loss/loc': loss_loc, 'loss/seg': loss_seg},
             self)
-        print("-----------CALC LOSS-----------------------------------------")
+        print("-----------CALC LOSS END-------------------------------------")
         return loss
 
     def set_epoch_num(self, epoch_num):
         self.epoch_num = epoch_num
-
 
 
 class Dataset(chainer.dataset.DatasetMixin):
@@ -214,8 +218,6 @@ class Dataset(chainer.dataset.DatasetMixin):
             print(common_params.images_dir + "/train/rgb/" + original_img_path + ".png")
             sys.exit(1)
 
-        #seg_labelimg = np.zeros([common_params.insize, common_params.insize])
-
         # セグメンテーション画像の読み込み
         seg_labelimg = cv.imread(common_params.images_dir + "/train/seglabel/" + seg_label_path + ".png", 0)
 
@@ -259,7 +261,6 @@ class Dataset(chainer.dataset.DatasetMixin):
         df_boxes = []
         indices = []
         classes = []
-
         idx_tmp = []
 
         # positiveサンプルの読み込み
@@ -271,6 +272,7 @@ class Dataset(chainer.dataset.DatasetMixin):
             gt_boxes.append([float(ln[2]), float(ln[3]), float(ln[4]), float(ln[5])])
             df_boxes.append([float(ln[6]), float(ln[7]), float(ln[8]), float(ln[9])])
             indices.append([int(ln[10]), int(ln[11]), int(ln[12]), int(ln[13])])
+            print("indices.append", [int(ln[10]), int(ln[11]), int(ln[12]), int(ln[13])])
             pos_num += 1
         f.close()
 
@@ -292,6 +294,7 @@ class Dataset(chainer.dataset.DatasetMixin):
 
         for hn in range(0, hardneg_size):
             indices.append(idx_tmp[perm[hn]])
+            print("indices.append", idx_tmp[perm[hn]])
 
         # segmentationのignore class(255)を-1にする
         input_seglabel = input_seglabel.astype(np.int32) #uintからintにしないと負の値が入らない
@@ -306,6 +309,14 @@ class Dataset(chainer.dataset.DatasetMixin):
         classes = yp.array(classes).astype(np.int32)
         conf_img = yp.array(conf_img)
         input_seglabel = yp.array(input_seglabel)
+
+        print("indices", indices, indices.shape)
+        # padding ???(random) -> 8732(dfbox max size)
+        if len(gt_boxes) != 8732:
+            gt_boxes = np.pad(gt_boxes, [(0,8732-len(gt_boxes)), (0,0)], 'constant')
+            df_boxes = np.pad(df_boxes, [(0,8732-len(df_boxes)), (0,0)], 'constant')
+            indices = np.pad(indices, [(0,8732-len(indices)), (0,0)], 'constant')
+            classes = np.pad(classes, (0,8732-len(classes)), 'constant')
 
         #print("final:" + str(np.max(input_seglabel))) #デバッグ用 seg教師信号の値確認 255以外で一番でかいやつを出力
         """
@@ -327,6 +338,7 @@ class Dataset(chainer.dataset.DatasetMixin):
         print("input_seglabel", np.array(input_seglabel).shape, type(input_seglabel[0][0]))
         print("-----------------")
         """
+        """
         print("input_img", input_img.shape, type(input_img[0][0][0]))
         print("gt_boxes", gt_boxes.shape, type(gt_boxes[0][0]))
         print("df_boxes", df_boxes.shape, type(df_boxes[0][0]))
@@ -335,8 +347,27 @@ class Dataset(chainer.dataset.DatasetMixin):
         print("conf_img", conf_img.shape, type(conf_img[0][0][0]))
         print("input_seglabel", input_seglabel.shape, type(input_seglabel[0][0]))
         print("-----------------")
-
+        """
         return input_img, gt_boxes, df_boxes, indices, classes, conf_img, input_seglabel
+        """
+        This Code:
+        input_img (3, 300, 300) <type 'numpy.float32'>
+        gt_boxes (2810, 4) <type 'numpy.float64'>
+        df_boxes (2810, 4) <type 'numpy.float64'>
+        indices (356, 4) <type 'numpy.int64'>
+        classes (2810,) <type 'numpy.int64'>
+        conf_img (300, 300, 3) <type 'numpy.uint8'>
+        input_seglabel (300, 300) <type 'numpy.int64'>
+
+        ChainerCV:
+        img
+            shape= (3, 300, 300)
+        mb_loc:
+            shape= (8732, 4) np.float32
+        mb_label:
+            shape= (8732,) np.int32
+
+        """
 
 
 def copy_model(src, dst):   #src:vgg_model dst:ssd_model
@@ -368,81 +399,76 @@ def copy_model(src, dst):   #src:vgg_model dst:ssd_model
             print("Copy %s" % child.name)
 
 
-# 誤差関数
-def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label, today_dir_path):
+# 誤差関数(new)
+def loss_function_new(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label, today_dir_path):
 
     if mining:
         # hard negative mining有効時のクラスラベル
-        cls_t1 = np.ones((bat_s, common_params.num_boxes[0], common_params.map_sizes[0], common_params.map_sizes[0]), np.int32) * -1
-        cls_t2 = np.ones((bat_s, common_params.num_boxes[1], common_params.map_sizes[1], common_params.map_sizes[1]), np.int32) * -1
-        cls_t3 = np.ones((bat_s, common_params.num_boxes[2], common_params.map_sizes[2], common_params.map_sizes[2]), np.int32) * -1
-        cls_t4 = np.ones((bat_s, common_params.num_boxes[3], common_params.map_sizes[3], common_params.map_sizes[3]), np.int32) * -1
-        cls_t5 = np.ones((bat_s, common_params.num_boxes[4], common_params.map_sizes[4], common_params.map_sizes[4]), np.int32) * -1
-        cls_t6 = np.ones((bat_s, common_params.num_boxes[5], common_params.map_sizes[5], common_params.map_sizes[5]), np.int32) * -1
+        cls_t1 = xp.ones((bat_s, common_params.num_boxes[0], common_params.map_sizes[0], common_params.map_sizes[0]), np.int32) * -1
+        cls_t2 = xp.ones((bat_s, common_params.num_boxes[1], common_params.map_sizes[1], common_params.map_sizes[1]), np.int32) * -1
+        cls_t3 = xp.ones((bat_s, common_params.num_boxes[2], common_params.map_sizes[2], common_params.map_sizes[2]), np.int32) * -1
+        cls_t4 = xp.ones((bat_s, common_params.num_boxes[3], common_params.map_sizes[3], common_params.map_sizes[3]), np.int32) * -1
+        cls_t5 = xp.ones((bat_s, common_params.num_boxes[4], common_params.map_sizes[4], common_params.map_sizes[4]), np.int32) * -1
+        cls_t6 = xp.ones((bat_s, common_params.num_boxes[5], common_params.map_sizes[5], common_params.map_sizes[5]), np.int32) * -1
     else:
         # hard negative mining無効時のクラスラベル
-        cls_t1 = np.zeros((bat_s, common_params.num_boxes[0], common_params.map_sizes[0], common_params.map_sizes[0]), np.int32)
-        cls_t2 = np.zeros((bat_s, common_params.num_boxes[1], common_params.map_sizes[1], common_params.map_sizes[1]), np.int32)
-        cls_t3 = np.zeros((bat_s, common_params.num_boxes[2], common_params.map_sizes[2], common_params.map_sizes[2]), np.int32)
-        cls_t4 = np.zeros((bat_s, common_params.num_boxes[3], common_params.map_sizes[3], common_params.map_sizes[3]), np.int32)
-        cls_t5 = np.zeros((bat_s, common_params.num_boxes[4], common_params.map_sizes[4], common_params.map_sizes[4]), np.int32)
-        cls_t6 = np.zeros((bat_s, common_params.num_boxes[5], common_params.map_sizes[5], common_params.map_sizes[5]), np.int32)
+        cls_t1 = xp.zeros((bat_s, common_params.num_boxes[0], common_params.map_sizes[0], common_params.map_sizes[0]), np.int32)
+        cls_t2 = xp.zeros((bat_s, common_params.num_boxes[1], common_params.map_sizes[1], common_params.map_sizes[1]), np.int32)
+        cls_t3 = xp.zeros((bat_s, common_params.num_boxes[2], common_params.map_sizes[2], common_params.map_sizes[2]), np.int32)
+        cls_t4 = xp.zeros((bat_s, common_params.num_boxes[3], common_params.map_sizes[3], common_params.map_sizes[3]), np.int32)
+        cls_t5 = xp.zeros((bat_s, common_params.num_boxes[4], common_params.map_sizes[4], common_params.map_sizes[4]), np.int32)
+        cls_t6 = xp.zeros((bat_s, common_params.num_boxes[5], common_params.map_sizes[5], common_params.map_sizes[5]), np.int32)
 
     # bounding boxのオフセットベクトルの教示データ
-    loc_t1 = np.zeros((bat_s, common_params.num_boxes[0] * common_params.num_of_offset_dims, common_params.map_sizes[0], common_params.map_sizes[0]), np.float32)
-    loc_t2 = np.zeros((bat_s, common_params.num_boxes[1] * common_params.num_of_offset_dims, common_params.map_sizes[1], common_params.map_sizes[1]), np.float32)
-    loc_t3 = np.zeros((bat_s, common_params.num_boxes[2] * common_params.num_of_offset_dims, common_params.map_sizes[2], common_params.map_sizes[2]), np.float32)
-    loc_t4 = np.zeros((bat_s, common_params.num_boxes[3] * common_params.num_of_offset_dims, common_params.map_sizes[3], common_params.map_sizes[3]), np.float32)
-    loc_t5 = np.zeros((bat_s, common_params.num_boxes[4] * common_params.num_of_offset_dims, common_params.map_sizes[4], common_params.map_sizes[4]), np.float32)
-    loc_t6 = np.zeros((bat_s, common_params.num_boxes[5] * common_params.num_of_offset_dims, common_params.map_sizes[5], common_params.map_sizes[5]), np.float32)
+    loc_t1 = xp.zeros((bat_s, common_params.num_boxes[0] * common_params.num_of_offset_dims, common_params.map_sizes[0], common_params.map_sizes[0]), np.float32)
+    loc_t2 = xp.zeros((bat_s, common_params.num_boxes[1] * common_params.num_of_offset_dims, common_params.map_sizes[1], common_params.map_sizes[1]), np.float32)
+    loc_t3 = xp.zeros((bat_s, common_params.num_boxes[2] * common_params.num_of_offset_dims, common_params.map_sizes[2], common_params.map_sizes[2]), np.float32)
+    loc_t4 = xp.zeros((bat_s, common_params.num_boxes[3] * common_params.num_of_offset_dims, common_params.map_sizes[3], common_params.map_sizes[3]), np.float32)
+    loc_t5 = xp.zeros((bat_s, common_params.num_boxes[4] * common_params.num_of_offset_dims, common_params.map_sizes[4], common_params.map_sizes[4]), np.float32)
+    loc_t6 = xp.zeros((bat_s, common_params.num_boxes[5] * common_params.num_of_offset_dims, common_params.map_sizes[5], common_params.map_sizes[5]), np.float32)
 
     for b in range(0, len(idx_batch)):
         for i in range(0, len(idx_batch[b])):
 
-            fmap_layer = idx_batch[b][i][1]
-            fmap_position = idx_batch[b][i][2]
-            df_box_num = idx_batch[b][i][3]
+            fmap_layer = int(idx_batch[b][i][1])
+            fmap_position = int(idx_batch[b][i][2])
+            df_box_num = int(idx_batch[b][i][3])
             st_box_idx = df_box_num * common_params.num_of_offset_dims
             ed_box_idx = st_box_idx + common_params.num_of_offset_dims
-
             c = int(fmap_position % common_params.map_sizes[fmap_layer])
             r = int(fmap_position / common_params.map_sizes[fmap_layer])
 
             # 1〜6番目のdefault boxのクラスとオフセットの教示データを格納
+            gt_box_batch_idx = gt_box_batch[b][i]
+            df_box_batch_idx = df_box_batch[b][i]
+
             if fmap_layer == 0:
                 cls_t1[b, df_box_num, r, c] = cls_batch[b][i]
-                loc_t1[b, st_box_idx : ed_box_idx, r, c] = (np.array(gt_box_batch[b][i], np.float32) - np.array(df_box_batch[b][i], np.float32)) / common_params.loc_var
+                loc_t1[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
             elif fmap_layer == 1:
                 cls_t2[b, df_box_num, r, c] = cls_batch[b][i]
-                loc_t2[b, st_box_idx : ed_box_idx, r, c] = (np.array(gt_box_batch[b][i], np.float32) - np.array(df_box_batch[b][i], np.float32)) / common_params.loc_var
+                loc_t2[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
             elif fmap_layer == 2:
                 cls_t3[b, df_box_num, r, c] = cls_batch[b][i]
-                loc_t3[b, st_box_idx : ed_box_idx, r, c] = (np.array(gt_box_batch[b][i], np.float32) - np.array(df_box_batch[b][i], np.float32)) / common_params.loc_var
+                loc_t3[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
             elif fmap_layer == 3:
                 cls_t4[b, df_box_num, r, c] = cls_batch[b][i]
-                loc_t4[b, st_box_idx : ed_box_idx, r, c] = (np.array(gt_box_batch[b][i], np.float32) - np.array(df_box_batch[b][i], np.float32)) / common_params.loc_var
+                loc_t4[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
             elif fmap_layer == 4:
                 cls_t5[b, df_box_num, r, c] = cls_batch[b][i]
-                loc_t5[b, st_box_idx : ed_box_idx, r, c] = (np.array(gt_box_batch[b][i], np.float32) - np.array(df_box_batch[b][i], np.float32)) / common_params.loc_var
+                loc_t5[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
             elif fmap_layer == 5:
                 cls_t6[b, df_box_num, r, c] = cls_batch[b][i]
-                loc_t6[b, st_box_idx : ed_box_idx, r, c] = (np.array(gt_box_batch[b][i], np.float32) - np.array(df_box_batch[b][i], np.float32)) / common_params.loc_var
-
-    # 1〜6階層目の教示confidence mapをint32型のarrayにする
-    cls_t1 = xp.array(cls_t1, np.int32)
-    cls_t2 = xp.array(cls_t2, np.int32)
-    cls_t3 = xp.array(cls_t3, np.int32)
-    cls_t4 = xp.array(cls_t4, np.int32)
-    cls_t5 = xp.array(cls_t5, np.int32)
-    cls_t6 = xp.array(cls_t6, np.int32)
+                loc_t6[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
 
     # 1〜6階層目の教示confidence mapをVariableにする
-    cls_t1_data = chainer.Variable(cls_t1)
-    cls_t2_data = chainer.Variable(cls_t2)
-    cls_t3_data = chainer.Variable(cls_t3)
-    cls_t4_data = chainer.Variable(cls_t4)
-    cls_t5_data = chainer.Variable(cls_t5)
-    cls_t6_data = chainer.Variable(cls_t6)
+    with chainer.using_config('enable_backprop', False):
+        cls_t1_data = chainer.Variable(cls_t1)
+        cls_t2_data = chainer.Variable(cls_t2)
+        cls_t3_data = chainer.Variable(cls_t3)
+        cls_t4_data = chainer.Variable(cls_t4)
+        cls_t5_data = chainer.Variable(cls_t5)
+        cls_t6_data = chainer.Variable(cls_t6)
 
     # 1〜6階層目の教示confidence mapの次元を(バッチ数, DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, DF box数)に転置
     cls_t1_data = F.transpose(cls_t1_data, [0, 2, 3, 1])
@@ -460,21 +486,14 @@ def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batc
     cls_t5_data = F.reshape(cls_t5_data, [cls_t5_data.data.shape[0] * cls_t5_data.data.shape[1] * cls_t5_data.data.shape[2] * common_params.num_boxes[4]])
     cls_t6_data = F.reshape(cls_t6_data, [cls_t6_data.data.shape[0] * cls_t6_data.data.shape[1] * cls_t6_data.data.shape[2] * common_params.num_boxes[5]])
 
-    # 1〜6階層目の教示localization mapをfloat32型のarrayにする
-    loc_t1 = xp.array(loc_t1, np.float32)
-    loc_t2 = xp.array(loc_t2, np.float32)
-    loc_t3 = xp.array(loc_t3, np.float32)
-    loc_t4 = xp.array(loc_t4, np.float32)
-    loc_t5 = xp.array(loc_t5, np.float32)
-    loc_t6 = xp.array(loc_t6, np.float32)
-
     # 1〜6階層目の教示localization mapをVariableにする
-    loc_t1_data = chainer.Variable(loc_t1)
-    loc_t2_data = chainer.Variable(loc_t2)
-    loc_t3_data = chainer.Variable(loc_t3)
-    loc_t4_data = chainer.Variable(loc_t4)
-    loc_t5_data = chainer.Variable(loc_t5)
-    loc_t6_data = chainer.Variable(loc_t6)
+    with chainer.using_config('enable_backprop', False):
+        loc_t1_data = chainer.Variable(loc_t1)
+        loc_t2_data = chainer.Variable(loc_t2)
+        loc_t3_data = chainer.Variable(loc_t3)
+        loc_t4_data = chainer.Variable(loc_t4)
+        loc_t5_data = chainer.Variable(loc_t5)
+        loc_t6_data = chainer.Variable(loc_t6)
 
     # 1〜6階層目の教示localization mapの次元を(バッチ数, オフセット次元数 * DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, オフセット次元数 * DF box数)に転置
     loc_t1_data = F.transpose(loc_t1_data, [0, 2, 3, 1])
@@ -546,7 +565,8 @@ def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batc
     del loc_t1, loc_t2, loc_t3, loc_t4, loc_t5, loc_t6
     del cls_t1_data, cls_t2_data, cls_t3_data, cls_t4_data, cls_t5_data, cls_t6_data
     del loc_t1_data, loc_t2_data, loc_t3_data, loc_t4_data, loc_t5_data, loc_t6_data
-
+    print(loss_cls, loss_loc, loss_seg)
+    print(type(loss_cls), type(loss_loc), type(loss_seg))
     return loss_cls, loss_loc, loss_seg
 
 
@@ -591,11 +611,18 @@ def main():
     train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
 
     # Setup optimizer
-    # AdamよりMomentumSGDの方か良い？？ (YOLOはMomentumSGDで実装されている)
-    #optimizer = optimizers.Adam()
     optimizer = optimizers.MomentumSGD(lr = common_params.learning_rate, momentum = common_params.momentum)
     optimizer.setup(train_chain)
     optimizer.add_hook(chainer.optimizer.WeightDecay(common_params.weight_decay))
+    """
+    optimizer = optimizers.MomentumSGD()
+    optimizer.setup(train_chain)
+    for param in train_chain.params():
+        if param.name == 'b':
+            param.update_rule.add_hook(GradientScaling(2))
+        else:
+            param.update_rule.add_hook(chainer.optimizer.WeightDecay(0.0005))
+    """
     #optimizer.add_hook(DelGradient(["Loc1", "Cls1", "esconv1", "esconv2", "esconv3", "esconv4", "esconv5"]))
     #optimizer.add_hook(DelGradient(["Loc1", "Cls1", "Loc2", "Cls2", "Loc3", "Cls3", "Loc4", "Cls4", "Loc5", "Cls5", "Loc6", "Cls6"]))
 
@@ -621,7 +648,6 @@ def main():
     # Model saving setup
     trainer.extend(extensions.snapshot(), trigger=(1, 'epoch'))
     trainer.extend(
-        #extensions.snapshot_object(model, 'SSD_Seg_epoch_{.updater.epoch}' + suffix = "_with_mining.model" if updater.epoch % 4 == 0 else "_without_mining.model"),
         extensions.snapshot_object(ssd_model, 'SSD_Seg_epoch_{.updater.epoch}.model'),
         trigger=(1, 'epoch'))
 
