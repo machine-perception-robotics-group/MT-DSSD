@@ -312,11 +312,25 @@ class Dataset(chainer.dataset.DatasetMixin):
 
         print("indices", indices, indices.shape)
         # padding ???(random) -> 8732(dfbox max size)
-        if len(gt_boxes) != 8732:
-            gt_boxes = np.pad(gt_boxes, [(0,8732-len(gt_boxes)), (0,0)], 'constant')
-            df_boxes = np.pad(df_boxes, [(0,8732-len(df_boxes)), (0,0)], 'constant')
-            indices = np.pad(indices, [(0,8732-len(indices)), (0,0)], 'constant')
-            classes = np.pad(classes, (0,8732-len(classes)), 'constant')
+        if len(gt_boxes) == 0:
+            gt_boxes = np.zeros((8732, 4))
+        elif len(gt_boxes) != 8732:
+            gt_boxes = np.pad(np.array(gt_boxes), [(0,8732-len(gt_boxes)), (0,0)], 'constant')
+
+        if len(df_boxes) == 0:
+            df_boxes = np.zeros((8732, 4))
+        elif len(df_boxes) != 8732:
+            df_boxes = np.pad(np.array(df_boxes), [(0,8732-len(df_boxes)), (0,0)], 'constant')
+
+        if len(indices) == 0:
+            indices = np.zeros((8732, 4))
+        elif len(indices) != 8732:
+            indices = np.pad(np.array(indices), [(0,8732-len(indices)), (0,0)], 'constant')
+
+        if len(classes) == 0:
+            classes = np.zeros((8732,))
+        elif len(classes) != 8732:
+            classes = np.pad(np.array(classes), (0,8732-len(classes)), 'constant')
 
         #print("final:" + str(np.max(input_seglabel))) #デバッグ用 seg教師信号の値確認 255以外で一番でかいやつを出力
         """
@@ -588,7 +602,7 @@ def main():
         vgg_model.to_gpu()
         ssd_model.to_gpu()
 
-    copy_model(vgg_model, ssd_model)
+    #copy_model(vgg_model, ssd_model)
 
     del vgg_model
 
@@ -608,6 +622,7 @@ def main():
     train = Dataset("./augimg_name_list.txt", "./seglabel_name_list.txt", True)
     #train.get_example(0)
     train_chain = TrainChain(ssd_model, today_dir_path)
+
     train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
 
     # Setup optimizer
