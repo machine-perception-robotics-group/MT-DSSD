@@ -248,7 +248,7 @@ class SSDNet(chainer.Chain):
         #plt.show()
         #plt.savefig('image.png')
 
-        with chainer.using_config('train', True):
+        if chainer.config.train:
             Loc1 = F.transpose(Loc1, [0, 2, 3, 1]) #(バッチ数,高さ,幅,チャンネル数)
             Cls1 = F.transpose(Cls1, [0, 2, 3, 1])
 
@@ -284,8 +284,7 @@ class SSDNet(chainer.Chain):
 
             Loc6 = F.reshape(Loc6, [Loc6.data.shape[0] * Loc6.data.shape[1] * Loc6.data.shape[2] * common_params.num_boxes[5], int(Loc6.data.shape[3] / common_params.num_boxes[5])])
             Cls6 = F.reshape(Cls6, [Cls6.data.shape[0] * Cls6.data.shape[1] * Cls6.data.shape[2] * common_params.num_boxes[5], int(Cls6.data.shape[3] / common_params.num_boxes[5])])
-
             return (Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6, Seg)
 
-        with chainer.using_config('train', False):
+        else:
             return (Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6, Seg)

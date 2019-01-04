@@ -22,7 +22,7 @@ from glob import glob
 from os import path
 import os
 
-# 学習モデルのパス
+# 学習モデルのパス (引数で与えた方が優先されます)
 MODEL_PATH = "./models/DSSD_Seg_epoch_150_without_mining.model"
 
 # WebCamでの検出時に画像を保存する(容量圧迫注意!!) True:する/False:しない
@@ -44,13 +44,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--webcam', '-c', type = int, default = -1, help = 'webcam ID / -1 :image file')
 parser.add_argument('--indir', '-i', type = str, default = 'none', help = 'input dir')
 parser.add_argument('--outdir', '-o', type = str, default = './out/', help = 'output dir of results')
-parser.add_argument('--type', '-t', type=str, default='.jpg', help = 'input image type')
 parser.add_argument('--gpu', '-g', type = int, default = -1, help = 'GPU ID (negative value indicates CPU)')
+parser.add_argument('--model', '-m', type = str, default = None, help = 'Model path')
 args = parser.parse_args()
+
+if args.model != None: MODEL_PATH = args.model
 
 IN_DIR = args.indir
 OUT_DIR = args.outdir
-IN_TYPE = args.type
+IN_TYPE = '.png'
 OUT_TYPE = '.png'
 
 if args.gpu >= 0:
@@ -421,7 +423,6 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
     input_data.append(input_img)
 
     x_data = Variable(xp.asarray(input_data, np.float32))
-    ssd_model.train = False
     elapsed_time = time.time() - start
     print ('Resize : ', elapsed_time)
     processing_time += elapsed_time
@@ -429,6 +430,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
 
     # SSDのforward
     start = time.time()
+    chainer.config.train = False
     Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6, Seg = ssd_model(x_data)
     elapsed_time = time.time() - start
     print ('SSD_forward : ', elapsed_time)
@@ -638,7 +640,7 @@ def main():
         sys.exit(1)
 
     # 学習モデル読み込み
-    print('[Info] SSD Netの読み込み中...')
+    print('[Info] SSD Netの読み込み中:' + MODEL_PATH)
     from SSD_seg_Net import SSDNet
     ssd_model = SSDNet()
     serializers.load_npz(MODEL_PATH, ssd_model)
