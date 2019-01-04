@@ -11,6 +11,7 @@ MT-DSSDのPytorch実装版です．
 - pytorch 1.0
 - torchnet
 - numpy (Recommended version >= 1.10)
+- tqdm
 
 # Usage
 Chainer版を参照してください．

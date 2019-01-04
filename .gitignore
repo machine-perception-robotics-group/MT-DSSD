@@ -125,3 +125,5 @@ img_name_list\.txt
 depth_name_list\.txt
 
 augimg_name_list\.txt
+
+pytorch/pretrained_model/

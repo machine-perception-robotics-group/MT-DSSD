@@ -31,3 +31,4 @@ RUN pip install -U opencv-python
 RUN pip install -U torch
 RUN pip install -U torchvision
 RUN pip install -U torchnet
+RUN pip install -U tqdm
