@@ -50,6 +50,9 @@ if args.gpu >= 0:
     cuda.check_cuda_available()
 xp = cuda.cupy if args.gpu >= 0 else np
 
+#lossの保存間隔
+ITR_LOSS_SAVE = 1000
+
 # epoch数
 n_epoch = args.epoch
 
@@ -57,8 +60,6 @@ n_epoch = args.epoch
 batchsize = args.batchsize
 
 DEBUG = False
-
-TIMER = False
 
 def print_array(name, array):
     print(name)
@@ -78,11 +79,13 @@ def set_epoch_num(train_chain, _log_report='LogReport'):
 
 class TrainChain(chainer.Chain):
     def __init__(self, model, today_dir_path):
-        super(TrainChain, self).__init__(model = model)
+        super(TrainChain, self).__init__()
+        with self.init_scope():
+            self.model = model
         self.today_dir_path = today_dir_path
         self.epoch_num = 0
         self.mining = False
-        self.model.train = True
+
 
     def __call__(self, img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, conf_img_batch, seglabel_batch):
         if DEBUG: print("-----------START FORWARD-----------------------------------------")
@@ -91,15 +94,12 @@ class TrainChain(chainer.Chain):
         #seg_label = chainer.Variable(xp.array(seglabel_batch, np.int32))
         #train_img = chainer.Variable(img_batch)
         #seg_label = chainer.Variable(seglabel_batch)
-        volatile = 'off' if self.model.train else 'on'
         today_dir_path = self.today_dir_path
         train_img = img_batch
         seg_label = seglabel_batch
 
-        if TIMER: start = time.time()
         # SSD net forward
         Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6, Seg = self.model(train_img)
-        if TIMER: print("forward:", time.time()-start)
 
         # ネットワークから出力されたconfidence mapを1〜6階層目まで結合
         Loc = F.concat([Loc1, Loc2, Loc3, Loc4, Loc5, Loc6], axis = 0)
@@ -109,17 +109,15 @@ class TrainChain(chainer.Chain):
 
         epoch_num = self.epoch_num #動作未確認
         # epochが4回に1回の割合でhard negative mining有効
-        if (epoch_num+1) % 4 == 0:
+        if epoch_num % 4 == 0:
             self.mining = True
         else:
             self.mining = False
 
         # lossを計算
         if DEBUG: print("-----------CALC LOSS-----------------------------------------")
-        if TIMER: start = time.time()
-        loss_cls, loss_loc, loss_seg = loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, self.mining, seg_label, today_dir_path, volatile)
+        loss_cls, loss_loc, loss_seg = loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, self.mining, seg_label, today_dir_path)
         loss = (loss_cls + loss_loc + loss_seg) / 3.
-        if TIMER: print("loss", time.time()-start)
 
         chainer.reporter.report(
             {'loss': loss, 'loss/cls': loss_cls, 'loss/loc': loss_loc, 'loss/seg': loss_seg, 'mining': self.mining},
@@ -297,15 +295,16 @@ class Dataset(chainer.dataset.DatasetMixin):
         input_seglabel[input_seglabel==255] = -1
 
         # list to numpy array
-        input_img = np.array(input_img)
-        gt_boxes = np.array(gt_boxes).astype(np.float32)
-        df_boxes = np.array(df_boxes).astype(np.float32)
-        indices = np.array(indices).astype(np.int32)
-        classes = np.array(classes).astype(np.int32)
-        conf_img = np.array(conf_img)
-        input_seglabel = np.array(input_seglabel)
+        yp = np
+        input_img = yp.array(input_img)
+        gt_boxes = yp.array(gt_boxes).astype(np.float32)
+        df_boxes = yp.array(df_boxes).astype(np.float32)
+        indices = yp.array(indices).astype(np.int32)
+        classes = yp.array(classes).astype(np.int32)
+        conf_img = yp.array(conf_img)
+        input_seglabel = yp.array(input_seglabel)
 
-        # padding ???(random) -> 8732(dfbox max size)*4
+        # padding ???(random) -> 8732(dfbox max size)
         max_boxes = 8732 * 4
 
         if len(gt_boxes) == 0:
@@ -328,25 +327,74 @@ class Dataset(chainer.dataset.DatasetMixin):
         elif len(classes) != max_boxes:
             classes = np.pad(np.array(classes), (0,max_boxes-len(classes)), 'constant', constant_values=-100)
 
-        return input_img, gt_boxes, df_boxes, indices, classes, conf_img, input_seglabel
 
+        #print("final:" + str(np.max(input_seglabel))) #デバッグ用 seg教師信号の値確認 255以外で一番でかいやつを出力
+        """
+        print_array("input_img", input_img)
+        print_array("gt_boxes", gt_boxes)
+        print_array("df_boxes", df_boxes)
+        print_array("indices", indices)
+        print_array("classes", classes)
+        print_array("conf_img", conf_img)
+        print_array("input_seglabel", input_seglabel)
+        """
+        """
+        print("input_img", np.array(input_img).shape, type(input_img[0][0][0]))
+        print("gt_boxes", np.array(gt_boxes).shape, type(gt_boxes[0][0]))
+        print("df_boxes", np.array(df_boxes).shape, type(df_boxes[0][0]))
+        print("indices", np.array(indices).shape, type(indices[0][0]))
+        print("classes", np.array(classes).shape, type(classes[0]))
+        print("conf_img", np.array(conf_img).shape, type(conf_img[0][0][0]))
+        print("input_seglabel", np.array(input_seglabel).shape, type(input_seglabel[0][0]))
+        print("-----------------")
+        """
+        """
+        print("input_img", input_img.shape, type(input_img[0][0][0]))
+        print("gt_boxes", gt_boxes.shape, type(gt_boxes[0][0]))
+        print("df_boxes", df_boxes.shape, type(df_boxes[0][0]))
+        print("indices", indices.shape, type(indices[0][0]))
+        print("classes", classes.shape, type(classes[0]))
+        print("conf_img", conf_img.shape, type(conf_img[0][0][0]))
+        print("input_seglabel", input_seglabel.shape, type(input_seglabel[0][0]))
+        print("-----------------")
+        """
+        return input_img, gt_boxes, df_boxes, indices, classes, conf_img, input_seglabel
+        """
+        This Code:
+        input_img (3, 300, 300) <type 'numpy.float32'>
+        gt_boxes (2810, 4) <type 'numpy.float64'>
+        df_boxes (2810, 4) <type 'numpy.float64'>
+        indices (356, 4) <type 'numpy.int64'>
+        classes (2810,) <type 'numpy.int64'>
+        conf_img (300, 300, 3) <type 'numpy.uint8'>
+        input_seglabel (300, 300) <type 'numpy.int64'>
+
+        ChainerCV:
+        img
+            shape= (3, 300, 300)
+        mb_loc:
+            shape= (8732, 4) np.float32
+        mb_label:
+            shape= (8732,) np.int32
+
+        """
 
 
 def copy_model(src, dst):   #src:vgg_model dst:ssd_model
-    assert isinstance(src, link.Chain)
+    assert isinstance(src, link.Chain)  #assert:条件式がfalseの場合、AssertionErrorが発生　isinstance:一つ目にオブジェクト、二つ目にクラスを受け取り、一つ目に渡したオブジェクトが二つ目のクラスのインスタンスならTrueを返す
     assert isinstance(dst, link.Chain)
 
     for child in src.children():
-        if child.name not in dst.__dict__:
+        if child.name not in dst.__dict__:  #__dict__リストオブジェクトの中にchild.nameが含まれていればfalse、含まれていなければtreuを返す __dict__:任意の関数属性をサポートするための名前空間が収められている
             continue
         dst_child = dst[child.name]
-        if type(child) != type(dst_child):
+        if type(child) != type(dst_child):  #type:引数に渡されたオブジェクトのクラスを返す
             continue
         if isinstance(child, link.Chain):
             copy_model(child, dst_child)
         if isinstance(child, link.Link):
             match = True
-            for a, b in zip(child.namedparams(), dst_child.namedparams()):
+            for a, b in zip(child.namedparams(), dst_child.namedparams()):  #zip:複数シーケンスオブジェクトを同時にループ
                 if a[0] != b[0]:
                     match = False
                     break
@@ -360,14 +408,9 @@ def copy_model(src, dst):   #src:vgg_model dst:ssd_model
                 b[1].data = a[1].data
             print("Copy %s" % child.name)
 
-# 誤差関数(new)
-def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label, today_dir_path, volatile):
-    gt_box_batch = chainer.cuda.to_cpu(gt_box_batch.data)
-    df_box_batch = chainer.cuda.to_cpu(df_box_batch.data)
-    idx_batch = chainer.cuda.to_cpu(idx_batch.data)
-    cls_batch = chainer.cuda.to_cpu(cls_batch.data)
+# 誤差関数
+def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label, today_dir_path):
 
-    if TIMER: start = time.time()
     if mining:
         # hard negative mining有効時のクラスラベル
         cls_t1 = np.ones((bat_s, common_params.num_boxes[0], common_params.map_sizes[0], common_params.map_sizes[0]), np.int32) * -1
@@ -392,12 +435,7 @@ def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batc
     loc_t4 = np.zeros((bat_s, common_params.num_boxes[3] * common_params.num_of_offset_dims, common_params.map_sizes[3], common_params.map_sizes[3]), np.float32)
     loc_t5 = np.zeros((bat_s, common_params.num_boxes[4] * common_params.num_of_offset_dims, common_params.map_sizes[4], common_params.map_sizes[4]), np.float32)
     loc_t6 = np.zeros((bat_s, common_params.num_boxes[5] * common_params.num_of_offset_dims, common_params.map_sizes[5], common_params.map_sizes[5]), np.float32)
-    if TIMER: print("Loss_init_array:", time.time()-start)
 
-    cls_t = ([cls_t1, cls_t2, cls_t3, cls_t4, cls_t5, cls_t5])
-    loc_t = ([loc_t1, loc_t2, loc_t3, loc_t4, loc_t5, loc_t6])
-
-    if TIMER: start = time.time()
     for b in range(0, len(idx_batch)):
         for i in range(0, len(idx_batch[b])):
             if int(idx_batch[b][i][1]) == -100: break
@@ -414,11 +452,24 @@ def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batc
             gt_box_batch_idx = gt_box_batch[b][i]
             df_box_batch_idx = df_box_batch[b][i]
 
-            # 1〜6番目のdefault boxのクラスとオフセットの教示データを格納
-            cls_t[fmap_layer][b, df_box_num, r, c] = cls_batch[b][i]
-            loc_t[fmap_layer][b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch[b][i] - df_box_batch[b][i]) / common_params.loc_var
-
-    if TIMER: print("Loss_forloop:", time.time()-start)
+            if fmap_layer == 0:
+                cls_t1[b, df_box_num, r, c] = cls_batch[b][i]
+                loc_t1[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
+            elif fmap_layer == 1:
+                cls_t2[b, df_box_num, r, c] = cls_batch[b][i]
+                loc_t2[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
+            elif fmap_layer == 2:
+                cls_t3[b, df_box_num, r, c] = cls_batch[b][i]
+                loc_t3[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
+            elif fmap_layer == 3:
+                cls_t4[b, df_box_num, r, c] = cls_batch[b][i]
+                loc_t4[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
+            elif fmap_layer == 4:
+                cls_t5[b, df_box_num, r, c] = cls_batch[b][i]
+                loc_t5[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
+            elif fmap_layer == 5:
+                cls_t6[b, df_box_num, r, c] = cls_batch[b][i]
+                loc_t6[b, st_box_idx : ed_box_idx, r, c] = (gt_box_batch_idx - df_box_batch_idx) / common_params.loc_var
 
     # 1〜6階層目の教示confidence mapをint32型のarrayにする
     cls_t1 = xp.array(cls_t1, np.int32)
@@ -429,12 +480,13 @@ def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batc
     cls_t6 = xp.array(cls_t6, np.int32)
 
     # 1〜6階層目の教示confidence mapをVariableにする
-    cls_t1_data = chainer.Variable(cls_t1, volatile = volatile)
-    cls_t2_data = chainer.Variable(cls_t2, volatile = volatile)
-    cls_t3_data = chainer.Variable(cls_t3, volatile = volatile)
-    cls_t4_data = chainer.Variable(cls_t4, volatile = volatile)
-    cls_t5_data = chainer.Variable(cls_t5, volatile = volatile)
-    cls_t6_data = chainer.Variable(cls_t6, volatile = volatile)
+    with chainer.using_config('enable_backprop', False):
+        cls_t1_data = chainer.Variable(cls_t1)
+        cls_t2_data = chainer.Variable(cls_t2)
+        cls_t3_data = chainer.Variable(cls_t3)
+        cls_t4_data = chainer.Variable(cls_t4)
+        cls_t5_data = chainer.Variable(cls_t5)
+        cls_t6_data = chainer.Variable(cls_t6)
 
     # 1〜6階層目の教示confidence mapの次元を(バッチ数, DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, DF box数)に転置
     cls_t1_data = F.transpose(cls_t1_data, [0, 2, 3, 1])
@@ -461,12 +513,13 @@ def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batc
     loc_t6 = xp.array(loc_t6, np.float32)
 
     # 1〜6階層目の教示localization mapをVariableにする
-    loc_t1_data = chainer.Variable(loc_t1, volatile = volatile)
-    loc_t2_data = chainer.Variable(loc_t2, volatile = volatile)
-    loc_t3_data = chainer.Variable(loc_t3, volatile = volatile)
-    loc_t4_data = chainer.Variable(loc_t4, volatile = volatile)
-    loc_t5_data = chainer.Variable(loc_t5, volatile = volatile)
-    loc_t6_data = chainer.Variable(loc_t6, volatile = volatile)
+    with chainer.using_config('enable_backprop', False):
+        loc_t1_data = chainer.Variable(loc_t1)
+        loc_t2_data = chainer.Variable(loc_t2)
+        loc_t3_data = chainer.Variable(loc_t3)
+        loc_t4_data = chainer.Variable(loc_t4)
+        loc_t5_data = chainer.Variable(loc_t5)
+        loc_t6_data = chainer.Variable(loc_t6)
 
     # 1〜6階層目の教示localization mapの次元を(バッチ数, オフセット次元数 * DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, オフセット次元数 * DF box数)に転置
     loc_t1_data = F.transpose(loc_t1_data, [0, 2, 3, 1])
@@ -547,12 +600,12 @@ def loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batc
 
 
 def main():
-    save_dir_suffix = "Chainer1_Trainer"
+    save_dir_suffix = "Chainer5_Trainer"
 
     #VGGNetの読み込み
     print('VGG Netの読み込み中...')
     vgg_model = VGGNet()
-    serializers.load_npz('./pretrained_model/VGGNet_for_SSD.model', vgg_model) #VGGモデルの読み込み
+    serializers.load_npz('../pretrained_model/VGGNet_for_SSD.model', vgg_model) #VGGモデルの読み込み
     print('-> 読み込み完了')
 
     #SSDNetの読み込み
@@ -586,14 +639,10 @@ def main():
     #train.get_example(0)
     train_chain = TrainChain(ssd_model, today_dir_path)
 
-    if args.loaderjob == 1:
-        train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
-    else:
-        #train_iter = chainer.iterators.MultithreadIterator(train, args.batchsize, n_threads=args.loaderjob)
-        train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize, n_processes=args.loaderjob, shared_mem=(1024*1024*64))
+    train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
 
     # Setup optimizer
-    optimizer = optimizers.MomentumSGD(lr=common_params.learning_rate, momentum=common_params.momentum)
+    optimizer = optimizers.MomentumSGD(lr = common_params.learning_rate, momentum = common_params.momentum)
     optimizer.setup(train_chain)
     optimizer.add_hook(chainer.optimizer.WeightDecay(common_params.weight_decay))
 

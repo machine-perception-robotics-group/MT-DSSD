@@ -42,6 +42,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--webcam', '-c', type = int, default = -1, help = 'webcam ID / -1 :image file')
 parser.add_argument('--indir', '-i', type = str, default = 'none', help = 'input dir')
 parser.add_argument('--outdir', '-o', type = str, default = './out/', help = 'output dir of results')
+parser.add_argument('--type', '-t', type=str, default='.png', help = 'input image type')
 parser.add_argument('--gpu', '-g', type = int, default = -1, help = 'GPU ID (negative value indicates CPU)')
 parser.add_argument('--model', '-m', type = str, default = None, help = 'Model path')
 args = parser.parse_args()
@@ -50,7 +51,7 @@ if args.model != None: MODEL_PATH = args.model
 
 IN_DIR = args.indir
 OUT_DIR = args.outdir
-IN_TYPE = '.png'
+IN_TYPE = args.type
 OUT_TYPE = '.png'
 
 #GPUを使う
@@ -97,7 +98,7 @@ def init():
 
 # confidence mapのsoftmaxを計算
 def mboxSoftmax(confidence_maps, num_classes, num_boxes):
-
+    print(confidence_maps)
     s = np.zeros((confidence_maps.shape[0], confidence_maps.shape[1], confidence_maps.shape[2]), np.float32)
 
     bs = 0
@@ -115,7 +116,7 @@ def mboxSoftmax(confidence_maps, num_classes, num_boxes):
 
         bs = be
         be += num_classes
-
+    print(s)
     return s
 
 
@@ -537,6 +538,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
 
     # 各階層のconfidence mapのsoftmaxを計算
     start = time.time()
+    print("Cls1", Cls1.shape, Cls1)
     cls_score1 = mboxSoftmax(Cls1[0], common_params.num_of_classes, common_params.num_boxes[0])
     cls_score2 = mboxSoftmax(Cls2[0], common_params.num_of_classes, common_params.num_boxes[1])
     cls_score3 = mboxSoftmax(Cls3[0], common_params.num_of_classes, common_params.num_boxes[2])

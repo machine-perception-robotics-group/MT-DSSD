@@ -433,22 +433,23 @@ class MTLoss(nn.Module):
         loss_cls = x_entropy(Cls.to(device), Cls_T.to(device))
         # localization mapのloss
         #loss_loc = MSE(Loc.to(device), Loc_T.to(device))
+        DEBUG = False
         np.set_printoptions(threshold=np.inf)
         loss_loc = smooth_L1(Loc.to(device), Loc_T.to(device))
-        print("Loc", Loc.to("cpu").data.shape, Loc.to("cpu").data.numpy())
-        print("Loc_T", Loc_T.to("cpu").data.shape, Loc_T.to("cpu").data.numpy())
-        print("loss_loc1", loss_loc.to("cpu").data.shape, loss_loc.to("cpu").data.numpy())
+        if DEBUG: print("Loc", Loc.to("cpu").data.shape, Loc.to("cpu").data.numpy())
+        if DEBUG: print("Loc_T", Loc_T.to("cpu").data.shape, Loc_T.to("cpu").data.numpy())
+        if DEBUG: print("loss_loc1", loss_loc.to("cpu").data.shape, loss_loc.to("cpu").data.numpy())
         loss_loc = torch.sum(loss_loc, dim=-1)
-        print("loss_loc2_sum", loss_loc.to("cpu").data.shape, loss_loc.to("cpu").data.numpy())
+        if DEBUG: print("loss_loc2_sum", loss_loc.to("cpu").data.shape, loss_loc.to("cpu").data.numpy())
         positive_samples = torch.tensor(Cls_T > 0, dtype=torch.float32, device = device)
-        print("positive_samples", positive_samples.to("cpu").data.shape, positive_samples.to("cpu").data.numpy())
+        if DEBUG: print("positive_samples", positive_samples.to("cpu").data.shape, positive_samples.to("cpu").data.numpy())
         loss_loc *= positive_samples
-        print("loss_loc3_positives", loss_loc.to("cpu").data.shape, loss_loc.to("cpu").data.numpy())
+        if DEBUG: print("loss_loc3_positives", loss_loc.to("cpu").data.shape, loss_loc.to("cpu").data.numpy())
         n_positives = positive_samples.sum()
-        print("n_positives", n_positives)
+        if DEBUG: print("n_positives", n_positives)
         loss_loc = torch.sum(loss_loc) / n_positives
-        print("loss_loc_finaly", loss_loc)
-        exit(1)
+        if DEBUG: print("loss_loc_finaly", loss_loc)
+        if DEBUG: exit(1)
 
         #segmentationのloss
         loss_seg = x_entropy_seg(Seg.to(device), seg_label.to(device))
@@ -472,7 +473,7 @@ class Reporter():
         # Output dir
         today = datetime.datetime.today()
         today_dir = str(today.year) + '-' + str('%02d' % today.month) + '-' + str('%02d' % today.day) + '@' + str('%02d' % today.hour) + '-' + str('%02d' % today.minute) + '-' + str('%02d' % today.second)
-        save_dir_suffix = "_PyTorch1"
+        save_dir_suffix = "_PyTorch1_weightedloss"
         self.today_dir_path = path.join(common_params.save_model_dir, today_dir + save_dir_suffix)
         self.loss_dir_path = path.join(self.today_dir_path, "loss")
 
@@ -624,7 +625,8 @@ def main():
             # lossを計算
             if TIMER: start = time.time()
             loss_cls, loss_loc, loss_seg = loss_function(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, args.batchsize, mining, seg_label)
-            loss = (loss_cls + loss_loc + loss_seg) / 3.
+            #loss = (loss_cls + loss_loc + loss_seg) / 3.
+            loss = (loss_cls * 0.45 + loss_loc * 0.1 + loss_seg * 0.45 )
             if TIMER: print("Loss:", time.time()-start)
 
             if TIMER: start = time.time()

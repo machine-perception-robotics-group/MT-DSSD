@@ -431,7 +431,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
 
     # SSDのforward
     start = time.time()
-    ssd_model.train = False
+    chainer.config.train = False
     Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6, Seg = ssd_model(x_data)
     elapsed_time = time.time() - start
     print ('SSD_forward : ', elapsed_time)

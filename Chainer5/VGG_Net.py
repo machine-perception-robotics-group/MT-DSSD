@@ -10,31 +10,29 @@ import numpy as np
 
 class VGGNet(chainer.Chain):
 
-
     def __init__(self):
-        super(VGGNet, self).__init__(
-            conv1_1 = L.Convolution2D(3, 64, ksize = 3, stride = 1, pad = 1),
-            conv1_2 = L.Convolution2D(64, 64, ksize = 3, stride = 1, pad = 1),
+        super(VGGNet, self).__init__()
+        with self.init_scope():
+            conv1_1 = L.Convolution2D(3, 64, ksize = 3, stride = 1, pad = 1)
+            conv1_2 = L.Convolution2D(64, 64, ksize = 3, stride = 1, pad = 1)
 
-            conv2_1 = L.Convolution2D(64, 128, ksize = 3, stride = 1, pad = 1),
-            conv2_2 = L.Convolution2D(128, 128, ksize = 3, stride = 1, pad = 1),
+            conv2_1 = L.Convolution2D(64, 128, ksize = 3, stride = 1, pad = 1)
+            conv2_2 = L.Convolution2D(128, 128, ksize = 3, stride = 1, pad = 1)
 
-            conv3_1 = L.Convolution2D(128, 256, ksize = 3, stride = 1, pad = 1),
-            conv3_2 = L.Convolution2D(256, 256, ksize = 3, stride = 1, pad = 1),
-            conv3_3 = L.Convolution2D(256, 256, ksize = 3, stride = 1, pad = 1),
+            conv3_1 = L.Convolution2D(128, 256, ksize = 3, stride = 1, pad = 1)
+            conv3_2 = L.Convolution2D(256, 256, ksize = 3, stride = 1, pad = 1)
+            conv3_3 = L.Convolution2D(256, 256, ksize = 3, stride = 1, pad = 1)
 
-            conv4_1 = L.Convolution2D(256, 512, ksize = 3, stride = 1, pad = 1),
-            conv4_2 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1),
-            conv4_3 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1),
+            conv4_1 = L.Convolution2D(256, 512, ksize = 3, stride = 1, pad = 1)
+            conv4_2 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1)
+            conv4_3 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1)
 
-            conv5_1 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1),
-            conv5_2 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1),
-            conv5_3 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1),
+            conv5_1 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1)
+            conv5_2 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1)
+            conv5_3 = L.Convolution2D(512, 512, ksize = 3, stride = 1, pad = 1)
 
-            fc6 = L.Convolution2D(512, 1024, ksize = 3, stride = 1, pad = 1),
+            fc6 = L.Convolution2D(512, 1024, ksize = 3, stride = 1, pad = 1)
             fc7 = L.Convolution2D(1024, 1024, ksize = 1, stride = 1, pad = 0)
-        )
-        self.train = False
 
     def __call__(self, x):
         k1 = F.relu(self.conv1_1(x))

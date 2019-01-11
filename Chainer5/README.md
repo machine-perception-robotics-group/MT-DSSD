@@ -1,6 +1,7 @@
-# MT-DSSD (with pytorch)
-MT-DSSDのPytorch実装版（作成中）です．
-Class confidenceがうまく出ないバグがあります．他にもバグがあるかもしれません．
+# MT-DSSD (with Chainer5)
+MT-DSSDのChainer5実装版（作成中）です．
+loss.backward()時にcuDNNが使えないため，cuDNNを使わずに学習してください．
+他にもバグがあるかもしれません．
 
 ## Contents
 - SSD[1] (準備中)
@@ -9,18 +10,18 @@ Class confidenceがうまく出ないバグがあります．他にもバグが�
 # Requirement
 - Python 2.x (Recommended version >= 2.7.11)
 - OpenCV 2.x
-- pytorch 1.0
-- torchnet
+- Chainer 5.1
+- Cupy 5.1
 - numpy (Recommended version >= 1.10)
 - tqdm
 
 # Usage
 Chainer1版を参照してください．
 
-Dockerはshared memoryを多めにとって実行してください．例：
+Docker実行例：
 ```
-sudo nvidia-docker build ./ -t cuda9_pytorch1:latest
-sudo nvidia-docker run --shm-size 8G -it -v /home/ryorsk:/home/ryorsk cuda9_pytorch1:latest
+sudo nvidia-docker build ./ -t cuda92_chainer5_1:latest
+sudo nvidia-docker run --shm-size 8G -it -v /home/ryorsk:/home/ryorsk cuda92_chainer5_1:latest
 ```
 
 # Reference

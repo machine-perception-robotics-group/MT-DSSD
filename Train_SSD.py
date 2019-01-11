@@ -226,7 +226,7 @@ def readTrainData(input_name, confing_image):
 
 
 # 誤差関数
-def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining):
+def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, volatile):
 
     if mining:
         # hard negative mining有効時のクラスラベル
@@ -297,12 +297,12 @@ def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat
     cls_t6 = xp.array(cls_t6, np.int32)
 
     # 1〜6階層目の教示confidence mapをVariableにする
-    cls_t1_data = chainer.Variable(cls_t1)
-    cls_t2_data = chainer.Variable(cls_t2)
-    cls_t3_data = chainer.Variable(cls_t3)
-    cls_t4_data = chainer.Variable(cls_t4)
-    cls_t5_data = chainer.Variable(cls_t5)
-    cls_t6_data = chainer.Variable(cls_t6)
+    cls_t1_data = chainer.Variable(cls_t1, volatile = volatile)
+    cls_t2_data = chainer.Variable(cls_t2, volatile = volatile)
+    cls_t3_data = chainer.Variable(cls_t3, volatile = volatile)
+    cls_t4_data = chainer.Variable(cls_t4, volatile = volatile)
+    cls_t5_data = chainer.Variable(cls_t5, volatile = volatile)
+    cls_t6_data = chainer.Variable(cls_t6, volatile = volatile)
 
     # 1〜6階層目の教示confidence mapの次元を(バッチ数, DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, DF box数)に転置
     cls_t1_data = F.transpose(cls_t1_data, [0, 2, 3, 1])
@@ -329,12 +329,12 @@ def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat
     loc_t6 = xp.array(loc_t6, np.float32)
 
     # 1〜6階層目の教示localization mapをVariableにする
-    loc_t1_data = chainer.Variable(loc_t1)
-    loc_t2_data = chainer.Variable(loc_t2)
-    loc_t3_data = chainer.Variable(loc_t3)
-    loc_t4_data = chainer.Variable(loc_t4)
-    loc_t5_data = chainer.Variable(loc_t5)
-    loc_t6_data = chainer.Variable(loc_t6)
+    loc_t1_data = chainer.Variable(loc_t1, volatile = volatile)
+    loc_t2_data = chainer.Variable(loc_t2, volatile = volatile)
+    loc_t3_data = chainer.Variable(loc_t3, volatile = volatile)
+    loc_t4_data = chainer.Variable(loc_t4, volatile = volatile)
+    loc_t5_data = chainer.Variable(loc_t5, volatile = volatile)
+    loc_t6_data = chainer.Variable(loc_t6, volatile = volatile)
 
     # 1〜6階層目の教示localization mapの次元を(バッチ数, オフセット次元数 * DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, オフセット次元数 * DF box数)に転置
     loc_t1_data = F.transpose(loc_t1_data, [0, 2, 3, 1])
@@ -551,7 +551,8 @@ def train_loop():
 
         ssd_model.cleargrads()
 
-        train_img = chainer.Variable(xp.array(img_batch))
+        volatile = 'off' if ssd_model.train else 'on'
+        train_img = chainer.Variable(xp.array(img_batch), volatile = volatile)
 
         # SSD net forward
         Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6 = ssd_model(train_img)
@@ -569,7 +570,7 @@ def train_loop():
             mining = False
 
         # lossを計算
-        loss = lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining)
+        loss = lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, volatile)
 
         with chainer.using_config('use_cudnn', 'never'):
             loss.backward()
