@@ -18,6 +18,13 @@
 - Chainer 5.x
 - numpy
 
+# Docker実行例：
+```
+cd Docker
+sudo nvidia-docker build ./ -t cuda92_chainer5_1:latest
+sudo nvidia-docker run --shm-size 8G -it -v /home/ryorsk:/home/ryorsk cuda92_chainer5_1:latest
+```
+
 # Usage
 
 ## SSD / MT-DSSD共通の手順
