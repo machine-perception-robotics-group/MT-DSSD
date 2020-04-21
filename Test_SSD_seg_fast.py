@@ -22,6 +22,8 @@ from glob import glob
 from os import path
 import os
 
+cv.CV_AA = cv.LINE_AA
+
 # 学習モデルのパス (引数で与えた方が優先されます)
 MODEL_PATH = "./models/DSSD_Seg_epoch_150_without_mining.model"
 
@@ -475,33 +477,32 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
 
     # セグメンテーション保存
     start = time.time()
-    if DISPLAY:
-        # セグメンテーション結果をカラーに戻す
-        rgb_r = seg_result_max.copy()
-        rgb_g = seg_result_max.copy()
-        rgb_b = seg_result_max.copy()
+    # セグメンテーション結果をカラーに戻す
+    rgb_r = seg_result_max.copy()
+    rgb_g = seg_result_max.copy()
+    rgb_b = seg_result_max.copy()
 
-        for k in range(0, class_color.shape[0]):
-            rgb_r[seg_result_max==k] = class_color[k,0]
-            rgb_g[seg_result_max==k] = class_color[k,1]
-            rgb_b[seg_result_max==k] = class_color[k,2]
+    for k in range(0, class_color.shape[0]):
+        rgb_r[seg_result_max==k] = class_color[k,0]
+        rgb_g[seg_result_max==k] = class_color[k,1]
+        rgb_b[seg_result_max==k] = class_color[k,2]
 
-        rgb = np.zeros((seg_result_max.shape[0], seg_result_max.shape[1], 3))
-        rgb[:,:,0] = rgb_r
-        rgb[:,:,1] = rgb_g
-        rgb[:,:,2] = rgb_b
+    rgb = np.zeros((seg_result_max.shape[0], seg_result_max.shape[1], 3))
+    rgb[:,:,0] = rgb_r
+    rgb[:,:,1] = rgb_g
+    rgb[:,:,2] = rgb_b
 
-        rgb = rgb.astype(np.uint8)
-        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results/' + filename + OUT_TYPE, rgb)
-        rgb = cv.resize(rgb, (1280, 960), interpolation = cv.INTER_NEAREST)
-        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_large/' + filename + OUT_TYPE, rgb)
-        if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_gray/' + filename + OUT_TYPE, gray)
+    rgb = rgb.astype(np.uint8)
+    if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results/' + filename + OUT_TYPE, rgb)
+    rgb = cv.resize(rgb, (1280, 960), interpolation = cv.INTER_NEAREST)
+    if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_large/' + filename + OUT_TYPE, rgb)
+    if save_flag: cv.imwrite(OUT_DIR + '/segmentation_results_gray/' + filename + OUT_TYPE, gray)
 
-        rgb_s = rgb.copy()
-        elapsed_time = time.time() - start
-        print ('seg_save : ', elapsed_time)
-        drawing_time += elapsed_time
-        total_time += elapsed_time
+    rgb_s = rgb.copy()
+    elapsed_time = time.time() - start
+    print ('seg_save : ', elapsed_time)
+    drawing_time += elapsed_time
+    total_time += elapsed_time
 
     sbox = []
 
@@ -514,7 +515,7 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
         gray_extract[gray_extract != g] = 0
         #ret, thresh = cv.threshold(gray_extract, classes[g]-1, 255, 0) # OLD
         ret, thresh = cv.threshold(gray_extract, g-1, 255, 0)
-        contours, hierarchy = cv.findContours(thresh, 1, 2)
+        _, contours, hierarchy = cv.findContours(thresh, 1, 2)
 
         max_contours = 0
         max_i = 0
@@ -628,8 +629,8 @@ def detection(img, ssd_model, filename, min_sizes, max_sizes):
         if FRAMELATE:
             cv.rectangle(out_final, (0, 0), (180, 35), (0, 0, 0), -1)
             cv.putText(out_final, "FPS:" + "{0:.2f}".format(fps), (0, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.CV_AA)
-        cv.imshow("Final Detections", out_final)
-        cv.waitKey(1)
+        #cv.imshow("Final Detections", out_final)
+        #cv.waitKey(1)
 
     print('----- Detection Done -----')
 

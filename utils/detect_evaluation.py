@@ -3,6 +3,8 @@ from os import path
 import numpy
 import cv2
 import glob
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pylab import *
 import argparse
@@ -13,6 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--image', '-i', type = str, default = './image/', help = 'Path of test images dir')
 parser.add_argument('--teach', '-t', type = str, default = './teach/', help = 'Path of ground truth b-boxes dir')
 parser.add_argument('--result', '-r', type = str, default = './results/', help = 'Path of detection results dir')
+parser.add_argument('--epoch', '-e', type = int, default = 0, help = 'Num of epoch')
 args = parser.parse_args()
 
 image_path = args.image
@@ -183,6 +186,7 @@ def evaluate(file_list):
             boxes += 1
             if(result_data[i][0] != '0' and result_data[i][1] != '0'):
                 #detected
+                print(result_data[i])
                 detected_boxes += 1
                 total_IoU += float(result_data[i][2])
                 confusion_mat[conv_ID_table[int(result_data[i][1])]-1][conv_ID_table[int(result_data[i][0])]-1] += 1
@@ -263,6 +267,11 @@ def evaluate(file_list):
     for i in range(0, NCLASS):
         f.writelines(str(i+1) + ": " + str(normalized_matrix[i][i]) + '\n')
     f.close()
+
+    if args.epoch != 0:
+        f = open(eval_result_path + "/0_all_detection_results.txt", 'a')
+        f.writelines("{},{},{},{}\n".format(args.epoch, float(total_true_boxes) / float(total_detected_boxes), float(total_undetected_boxes) / float(total_boxes), total_IoU / total_detected_boxes))
+        f.close()
 
     savefig(eval_result_path + "/confusion_matrix.pdf", format="pdf")
     savefig(eval_result_path + "/confusion_matrix.png", format="png")

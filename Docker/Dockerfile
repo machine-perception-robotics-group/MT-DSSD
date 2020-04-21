@@ -1,4 +1,4 @@
-FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
+FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu16.04
 
 ENV PATH /usr/lib/ccache:$PATH
 
@@ -34,5 +34,5 @@ RUN pip install -U coverage
 RUN pip install -U scikit-learn
 RUN pip install -U pillow
 RUN pip install -U opencv-python
-RUN pip install -U cupy==2.1.0
-RUN pip install -U chainer==1.24.0
+RUN pip install -U cupy==5.1.0
+RUN pip install -U chainer==5.1.0

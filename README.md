@@ -13,10 +13,10 @@
 - MultiTask DSSD(MT-DSSD)[2, 3]
 
 # Requirement
-- Python 2.x (Recommended version >= 2.7.11)
+- Python 3.x
 - OpenCV 2.x
-- Chainer 1.x (Recommended version == 1.7.0)
-- numpy (Recommended version >= 1.10)
+- Chainer 5.x
+- numpy
 
 # Usage
 

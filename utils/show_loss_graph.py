@@ -2,6 +2,7 @@ import matplotlib
 import sys
 import math
 from os import path
+import numpy as np
 
 # Ignore first 1000 itr
 IGNORE_FIRST = True
@@ -22,104 +23,82 @@ def main():
         matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
-    cnt_chk_cls = 0
-    cnt_chk_loc = 0
-    cnt_chk_seg = 0
-
-    cls_loss, loc_loss, seg_loss, cls_loss_r, loc_loss_r, seg_loss_r = [], [], [], [], [], []
-    for l in open(path.join(input_path, 'loss_cls.txt')).readlines():
-        data = l[:-1].split(' ')
-        cls_loss += [float(data[0])]
-    for i in range(len(cls_loss)):
-        if i % INTERVAL == 0:
-            if i == 0 and IGNORE_FIRST: continue
-            cnt_chk_cls += 1
-            cls_loss_r.append(cls_loss[i])
-
-
-    for l in open(path.join(input_path, 'loss_loc.txt')).readlines():
-        data = l[:-1].split(' ')
-        loc_loss += [float(data[0])]
-    for i in range(len(loc_loss)):
-        if i % INTERVAL == 0:
-            if i == 0 and IGNORE_FIRST: continue
-            cnt_chk_loc += 1
-            loc_loss_r.append(loc_loss[i])
-
-    for l in open(path.join(input_path, 'loss_seg.txt')).readlines():
-        data = l[:-1].split(' ')
-        seg_loss += [float(data[0])]
-    for i in range(len(seg_loss)):
-        if i % INTERVAL == 0:
-            if i == 0 and IGNORE_FIRST: continue
-            cnt_chk_seg += 1
-            seg_loss_r.append(seg_loss[i])
-
-    if path.exists(path.join(input_path, 'loss_seg_aux.txt')):
-        cnt_chk_aux = 0
-        aux_loss = []
-        aux_loss_r = []
-        for l in open(path.join(input_path, 'loss_seg_aux.txt')).readlines():
+    cls_loss = []
+    if path.exists(path.join(input_path, 'loss_cls.txt')):
+        for l in open(path.join(input_path, 'loss_cls.txt')).readlines():
             data = l[:-1].split(' ')
-            aux_loss += [float(data[0])]
-        for i in range(len(aux_loss)):
-            if i % INTERVAL == 0:
-                if i == 0 and IGNORE_FIRST: continue
-                cnt_chk_aux += 1
-                aux_loss_r.append(aux_loss[i])
+            value = float(data[0])
+            if np.isnan(value) or np.isinf(value): value = 0.
+            cls_loss.append(value)
 
+    loc_loss = []
+    if path.exists(path.join(input_path, 'loss_loc.txt')):
+        for l in open(path.join(input_path, 'loss_loc.txt')).readlines():
+            data = l[:-1].split(' ')
+            value = float(data[0])
+            if np.isnan(value) or np.isinf(value): value = 0.
+            loc_loss.append(value)
 
-    if not(cnt_chk_cls == cnt_chk_loc == cnt_chk_seg):
-        print("Error: Number of lines is mismatched. cls:{} loc:{} seg:{}".format(cnt_chk_cls, cnt_chk_loc, cnt_chk_seg))
+    seg_loss = []
+    if path.exists(path.join(input_path, 'loss_seg.txt')):
+        for l in open(path.join(input_path, 'loss_seg.txt')).readlines():
+            data = l[:-1].split(' ')
+            value = float(data[0])
+            if np.isnan(value) or np.isinf(value): value = 0.
+            seg_loss.append(value)
 
-    elif path.exists(path.join(input_path, 'loss_seg_aux.txt')) and not(cnt_chk_cls == cnt_chk_loc == cnt_chk_seg == cnt_chk_aux):
-        print("Error: Number of lines is mismatched. cls:{} loc:{} seg:{} aux:{}".format(cnt_chk_cls, cnt_chk_loc, cnt_chk_seg. cnt_chk_aux))
-
-    x = []
-    for l in range(1, cnt_chk_cls+1):
-        if l == 0 and IGNORE_FIRST: continue
-        x.append(l * INTERVAL)
+    # convolve
+    num_conv = 300
+    b = np.ones(num_conv) / num_conv
 
     # plot
-
-    lines = plt.plot(x, cls_loss_r, 'k')
-    plt.setp(lines, color='b', linewidth=1.0)
-    plt.ylabel('Class Loss')
-    plt.xlabel('Iteration')
-    if save_flag == 1:
-        plt.savefig(path.join(input_path, "loss_cls.pdf"))
-    else:
-        plt.show()
-    plt.clf()
-
-    lines = plt.plot(x, loc_loss_r, 'g')
-    plt.setp(lines, color='b', linewidth=1.0)
-    plt.ylabel('Localization Loss')
-    plt.xlabel('Iteration')
-    if save_flag == 1:
-        plt.savefig(path.join(input_path, "loss_loc.pdf"))
-    else:
-        plt.show()
-    plt.clf()
-
-    lines = plt.plot(x, seg_loss_r, 'b')
-    plt.setp(lines, color='b', linewidth=1.0)
-    plt.ylabel('Segmentation Loss')
-    plt.xlabel('Iteration')
-    if save_flag == 1:
-        plt.savefig(path.join(input_path, "loss_seg.pdf"))
-    else:
-        plt.show()
-    plt.clf()
-
-
-    if path.exists(path.join(input_path, 'loss_seg_aux.txt')):
-        lines = plt.plot(x, aux_loss_r, 'b')
+    if path.exists(path.join(input_path, 'loss_cls.txt')):
+        x = range(0, len(cls_loss))
+        lines = plt.plot(x, cls_loss)
+        plt.setp(lines, color='c', linewidth=1.0, alpha=0.5)
+        cls_loss_ave = np.convolve(cls_loss, b, mode='same')
+        lines = plt.plot(x, cls_loss_ave)
         plt.setp(lines, color='b', linewidth=1.0)
-        plt.ylabel('Auxiliary Loss')
+        plt.ylim(-0.1, 1.5)
+        plt.ylabel('Class Loss')
         plt.xlabel('Iteration')
         if save_flag == 1:
-            plt.savefig(path.join(input_path, "loss_seg_aux.pdf"))
+            plt.savefig(path.join(input_path, "loss_cls.pdf"))
+            plt.savefig(path.join(input_path, "loss_cls.png"))
+        else:
+            plt.show()
+        plt.clf()
+
+    if path.exists(path.join(input_path, 'loss_loc.txt')):
+        x = range(0, len(loc_loss))
+        lines = plt.plot(x, loc_loss)
+        plt.setp(lines, color='c', linewidth=1.0, alpha=0.5)
+        loc_loss_ave = np.convolve(loc_loss, b, mode='same')
+        lines = plt.plot(x, loc_loss_ave)
+        plt.setp(lines, color='b', linewidth=1.0)
+        plt.ylim(-0.1, 1.5)
+        plt.ylabel('Localization Loss')
+        plt.xlabel('Iteration')
+        if save_flag == 1:
+            plt.savefig(path.join(input_path, "loss_loc.pdf"))
+            plt.savefig(path.join(input_path, "loss_loc.png"))
+        else:
+            plt.show()
+        plt.clf()
+
+    if path.exists(path.join(input_path, 'loss_seg.txt')):
+        x = range(0, len(seg_loss))
+        lines = plt.plot(x, seg_loss)
+        plt.setp(lines, color='c', linewidth=1.0, alpha=0.5)
+        seg_loss_ave = np.convolve(seg_loss, b, mode='same')
+        lines = plt.plot(x, seg_loss_ave)
+        plt.setp(lines, color='b', linewidth=1.0)
+        plt.ylim(-0.1, 5)
+        plt.ylabel('Segmentation Loss')
+        plt.xlabel('Iteration')
+        if save_flag == 1:
+            plt.savefig(path.join(input_path, "loss_seg.pdf"))
+            plt.savefig(path.join(input_path, "loss_seg.png"))
         else:
             plt.show()
         plt.clf()
@@ -128,3 +107,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

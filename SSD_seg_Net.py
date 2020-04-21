@@ -259,41 +259,51 @@ class SSDNet(chainer.Chain):
         #plt.savefig('image.png')
 
         if self.train:
-            Loc1 = F.transpose(Loc1, [0, 2, 3, 1]) #(バッチ数,高さ,幅,チャンネル数)
-            Cls1 = F.transpose(Cls1, [0, 2, 3, 1])
+            Loc1 = F.reshape(Loc1, [Loc1.data.shape[0], common_params.num_boxes[0], int(Loc1.data.shape[1] / common_params.num_boxes[0]), Loc1.data.shape[2], Loc1.data.shape[3]])
+            Loc2 = F.reshape(Loc2, [Loc2.data.shape[0], common_params.num_boxes[1], int(Loc2.data.shape[1] / common_params.num_boxes[1]), Loc2.data.shape[2], Loc2.data.shape[3]])
+            Loc3 = F.reshape(Loc3, [Loc3.data.shape[0], common_params.num_boxes[2], int(Loc3.data.shape[1] / common_params.num_boxes[2]), Loc3.data.shape[2], Loc3.data.shape[3]])
+            Loc4 = F.reshape(Loc4, [Loc4.data.shape[0], common_params.num_boxes[3], int(Loc4.data.shape[1] / common_params.num_boxes[3]), Loc4.data.shape[2], Loc4.data.shape[3]])
+            Loc5 = F.reshape(Loc5, [Loc5.data.shape[0], common_params.num_boxes[4], int(Loc5.data.shape[1] / common_params.num_boxes[4]), Loc5.data.shape[2], Loc5.data.shape[3]])
+            Loc6 = F.reshape(Loc6, [Loc6.data.shape[0], common_params.num_boxes[5], int(Loc6.data.shape[1] / common_params.num_boxes[5]), Loc6.data.shape[2], Loc6.data.shape[3]])
 
-            Loc2 = F.transpose(Loc2, [0, 2, 3, 1])
-            Cls2 = F.transpose(Cls2, [0, 2, 3, 1])
+            Loc1 = F.transpose(Loc1, [0, 3, 4, 1, 2]) # b, dfbox, Loc, w, h -> b, w, h, dfbox, Loc
+            Loc2 = F.transpose(Loc2, [0, 3, 4, 1, 2])
+            Loc3 = F.transpose(Loc3, [0, 3, 4, 1, 2])
+            Loc4 = F.transpose(Loc4, [0, 3, 4, 1, 2])
+            Loc5 = F.transpose(Loc5, [0, 3, 4, 1, 2])
+            Loc6 = F.transpose(Loc6, [0, 3, 4, 1, 2])
 
-            Loc3 = F.transpose(Loc3, [0, 2, 3, 1])
-            Cls3 = F.transpose(Cls3, [0, 2, 3, 1])
+            # b, w, h, dfbox, Loc -> b * w * h * dfbox, Loc
+            Loc1 = F.reshape(Loc1, [Loc1.data.shape[0] * Loc1.data.shape[1] * Loc1.data.shape[2] * Loc1.data.shape[3], Loc1.data.shape[4]])
+            Loc2 = F.reshape(Loc2, [Loc2.data.shape[0] * Loc2.data.shape[1] * Loc2.data.shape[2] * Loc2.data.shape[3], Loc2.data.shape[4]])
+            Loc3 = F.reshape(Loc3, [Loc3.data.shape[0] * Loc3.data.shape[1] * Loc3.data.shape[2] * Loc3.data.shape[3], Loc3.data.shape[4]])
+            Loc4 = F.reshape(Loc4, [Loc4.data.shape[0] * Loc4.data.shape[1] * Loc4.data.shape[2] * Loc4.data.shape[3], Loc4.data.shape[4]])
+            Loc5 = F.reshape(Loc5, [Loc5.data.shape[0] * Loc5.data.shape[1] * Loc5.data.shape[2] * Loc5.data.shape[3], Loc5.data.shape[4]])
+            Loc6 = F.reshape(Loc6, [Loc6.data.shape[0] * Loc6.data.shape[1] * Loc6.data.shape[2] * Loc6.data.shape[3], Loc6.data.shape[4]])
 
-            Loc4 = F.transpose(Loc4, [0, 2, 3, 1])
-            Cls4 = F.transpose(Cls4, [0, 2, 3, 1])
 
-            Loc5 = F.transpose(Loc5, [0, 2, 3, 1])
-            Cls5 = F.transpose(Cls5, [0, 2, 3, 1])
+            Cls1 = F.reshape(Cls1, [Cls1.data.shape[0], common_params.num_boxes[0], int(Cls1.data.shape[1] / common_params.num_boxes[0]), Cls1.data.shape[2], Cls1.data.shape[3]])
+            Cls2 = F.reshape(Cls2, [Cls2.data.shape[0], common_params.num_boxes[1], int(Cls2.data.shape[1] / common_params.num_boxes[1]), Cls2.data.shape[2], Cls2.data.shape[3]])
+            Cls3 = F.reshape(Cls3, [Cls3.data.shape[0], common_params.num_boxes[2], int(Cls3.data.shape[1] / common_params.num_boxes[2]), Cls3.data.shape[2], Cls3.data.shape[3]])
+            Cls4 = F.reshape(Cls4, [Cls4.data.shape[0], common_params.num_boxes[3], int(Cls4.data.shape[1] / common_params.num_boxes[3]), Cls4.data.shape[2], Cls4.data.shape[3]])
+            Cls5 = F.reshape(Cls5, [Cls5.data.shape[0], common_params.num_boxes[4], int(Cls5.data.shape[1] / common_params.num_boxes[4]), Cls5.data.shape[2], Cls5.data.shape[3]])
+            Cls6 = F.reshape(Cls6, [Cls6.data.shape[0], common_params.num_boxes[5], int(Cls6.data.shape[1] / common_params.num_boxes[5]), Cls6.data.shape[2], Cls6.data.shape[3]])
 
-            Loc6 = F.transpose(Loc6, [0, 2, 3, 1])
-            Cls6 = F.transpose(Cls6, [0, 2, 3, 1])
+            Cls1 = F.transpose(Cls1, [0, 3, 4, 1, 2]) # b, dfbox, cls, w, h -> b, w, h, dfbox, cls
+            Cls2 = F.transpose(Cls2, [0, 3, 4, 1, 2])
+            Cls3 = F.transpose(Cls3, [0, 3, 4, 1, 2])
+            Cls4 = F.transpose(Cls4, [0, 3, 4, 1, 2])
+            Cls5 = F.transpose(Cls5, [0, 3, 4, 1, 2])
+            Cls6 = F.transpose(Cls6, [0, 3, 4, 1, 2])
 
-            Loc1 = F.reshape(Loc1, [Loc1.data.shape[0] * Loc1.data.shape[1] * Loc1.data.shape[2] * common_params.num_boxes[0], int(Loc1.data.shape[3] / common_params.num_boxes[0])])
-            Cls1 = F.reshape(Cls1, [Cls1.data.shape[0] * Cls1.data.shape[1] * Cls1.data.shape[2] * common_params.num_boxes[0], int(Cls1.data.shape[3] / common_params.num_boxes[0])])
+            # b, w, h, dfbox, cls -> b * w * h * dfbox, cls
+            Cls1 = F.reshape(Cls1, [Cls1.data.shape[0] * Cls1.data.shape[1] * Cls1.data.shape[2] * Cls1.data.shape[3], Cls1.data.shape[4]])
+            Cls2 = F.reshape(Cls2, [Cls2.data.shape[0] * Cls2.data.shape[1] * Cls2.data.shape[2] * Cls2.data.shape[3], Cls2.data.shape[4]])
+            Cls3 = F.reshape(Cls3, [Cls3.data.shape[0] * Cls3.data.shape[1] * Cls3.data.shape[2] * Cls3.data.shape[3], Cls3.data.shape[4]])
+            Cls4 = F.reshape(Cls4, [Cls4.data.shape[0] * Cls4.data.shape[1] * Cls4.data.shape[2] * Cls4.data.shape[3], Cls4.data.shape[4]])
+            Cls5 = F.reshape(Cls5, [Cls5.data.shape[0] * Cls5.data.shape[1] * Cls5.data.shape[2] * Cls5.data.shape[3], Cls5.data.shape[4]])
+            Cls6 = F.reshape(Cls6, [Cls6.data.shape[0] * Cls6.data.shape[1] * Cls6.data.shape[2] * Cls6.data.shape[3], Cls6.data.shape[4]])
 
-            Loc2 = F.reshape(Loc2, [Loc2.data.shape[0] * Loc2.data.shape[1] * Loc2.data.shape[2] * common_params.num_boxes[1], int(Loc2.data.shape[3] / common_params.num_boxes[1])])
-            Cls2 = F.reshape(Cls2, [Cls2.data.shape[0] * Cls2.data.shape[1] * Cls2.data.shape[2] * common_params.num_boxes[1], int(Cls2.data.shape[3] / common_params.num_boxes[1])])
-
-            Loc3 = F.reshape(Loc3, [Loc3.data.shape[0] * Loc3.data.shape[1] * Loc3.data.shape[2] * common_params.num_boxes[2], int(Loc3.data.shape[3] / common_params.num_boxes[2])])
-            Cls3 = F.reshape(Cls3, [Cls3.data.shape[0] * Cls3.data.shape[1] * Cls3.data.shape[2] * common_params.num_boxes[2], int(Cls3.data.shape[3] / common_params.num_boxes[2])])
-
-            Loc4 = F.reshape(Loc4, [Loc4.data.shape[0] * Loc4.data.shape[1] * Loc4.data.shape[2] * common_params.num_boxes[3], int(Loc4.data.shape[3] / common_params.num_boxes[3])])
-            Cls4 = F.reshape(Cls4, [Cls4.data.shape[0] * Cls4.data.shape[1] * Cls4.data.shape[2] * common_params.num_boxes[3], int(Cls4.data.shape[3] / common_params.num_boxes[3])])
-
-            Loc5 = F.reshape(Loc5, [Loc5.data.shape[0] * Loc5.data.shape[1] * Loc5.data.shape[2] * common_params.num_boxes[4], int(Loc5.data.shape[3] / common_params.num_boxes[4])])
-            Cls5 = F.reshape(Cls5, [Cls5.data.shape[0] * Cls5.data.shape[1] * Cls5.data.shape[2] * common_params.num_boxes[4], int(Cls5.data.shape[3] / common_params.num_boxes[4])])
-
-            Loc6 = F.reshape(Loc6, [Loc6.data.shape[0] * Loc6.data.shape[1] * Loc6.data.shape[2] * common_params.num_boxes[5], int(Loc6.data.shape[3] / common_params.num_boxes[5])])
-            Cls6 = F.reshape(Cls6, [Cls6.data.shape[0] * Cls6.data.shape[1] * Cls6.data.shape[2] * common_params.num_boxes[5], int(Cls6.data.shape[3] / common_params.num_boxes[5])])
             return (Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6, Seg)
 
         else:

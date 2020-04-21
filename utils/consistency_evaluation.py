@@ -5,6 +5,8 @@ from os import path
 import numpy
 import cv2
 import glob
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pylab import *
 import argparse

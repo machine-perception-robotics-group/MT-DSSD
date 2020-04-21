@@ -13,6 +13,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--teach', '-t', type = str, default = './label/', help = 'Path of segmentation label dir')
 parser.add_argument('--result', '-r', type = str, default = './results/', help = 'Path of results dir')
+parser.add_argument('--epoch', '-e', type = int, default = 0, help = 'Num of epoch')
 args = parser.parse_args()
 
 # PLEASE CHANGE ##############################################
@@ -174,6 +175,12 @@ def main():
     f.writelines("Global Accuracy:" + str(GA * 100) + "%" + '\n')
     f.writelines("Class Accuracy:" + str(CA * 100) + "%" + '\n')
     f.writelines("Mean IoU:" + str(MI * 100) + "%" '\n')
+    f.close()
+
+    if args.epoch != 0:
+        f = open("./0_all_segmentation_results.txt", 'a')
+        f.writelines("{},{},{},{}\n".format(args.epoch, GA, CA, MI))
+        f.close()
 
 if __name__ == '__main__':
     main()
