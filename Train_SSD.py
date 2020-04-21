@@ -117,7 +117,7 @@ min_sizes = []
 max_sizes = []
 
 # Default boxの最小・最大サイズを計算
-for ratio in xrange(common_params.min_ratio, common_params.max_ratio + 1, step):
+for ratio in range(common_params.min_ratio, common_params.max_ratio + 1, step):
     min_sizes.append(common_params.insize * ratio / 100.)
     max_sizes.append(common_params.insize * (ratio + step) / 100.)
 
@@ -217,7 +217,7 @@ def readTrainData(input_name, confing_image):
 
     perm = np.random.permutation(len(idx_tmp))
 
-    for hn in xrange(0, hardneg_size):
+    for hn in range(0, hardneg_size):
         indices.append(idx_tmp[perm[hn]])
 
 
@@ -226,7 +226,7 @@ def readTrainData(input_name, confing_image):
 
 
 # 誤差関数
-def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, volatile):
+def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining):
 
     if mining:
         # hard negative mining有効時のクラスラベル
@@ -253,8 +253,8 @@ def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat
     loc_t5 = np.zeros((bat_s, common_params.num_boxes[4] * common_params.num_of_offset_dims, common_params.map_sizes[4], common_params.map_sizes[4]), np.float32)
     loc_t6 = np.zeros((bat_s, common_params.num_boxes[5] * common_params.num_of_offset_dims, common_params.map_sizes[5], common_params.map_sizes[5]), np.float32)
 
-    for b in xrange(0, len(idx_batch)):
-        for i in xrange(0, len(idx_batch[b])):
+    for b in range(0, len(idx_batch)):
+        for i in range(0, len(idx_batch[b])):
 
             fmap_layer = idx_batch[b][i][1]
             fmap_position = idx_batch[b][i][2]
@@ -297,12 +297,12 @@ def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat
     cls_t6 = xp.array(cls_t6, np.int32)
 
     # 1〜6階層目の教示confidence mapをVariableにする
-    cls_t1_data = chainer.Variable(cls_t1, volatile = volatile)
-    cls_t2_data = chainer.Variable(cls_t2, volatile = volatile)
-    cls_t3_data = chainer.Variable(cls_t3, volatile = volatile)
-    cls_t4_data = chainer.Variable(cls_t4, volatile = volatile)
-    cls_t5_data = chainer.Variable(cls_t5, volatile = volatile)
-    cls_t6_data = chainer.Variable(cls_t6, volatile = volatile)
+    cls_t1_data = chainer.Variable(cls_t1)
+    cls_t2_data = chainer.Variable(cls_t2)
+    cls_t3_data = chainer.Variable(cls_t3)
+    cls_t4_data = chainer.Variable(cls_t4)
+    cls_t5_data = chainer.Variable(cls_t5)
+    cls_t6_data = chainer.Variable(cls_t6)
 
     # 1〜6階層目の教示confidence mapの次元を(バッチ数, DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, DF box数)に転置
     cls_t1_data = F.transpose(cls_t1_data, [0, 2, 3, 1])
@@ -329,12 +329,12 @@ def lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat
     loc_t6 = xp.array(loc_t6, np.float32)
 
     # 1〜6階層目の教示localization mapをVariableにする
-    loc_t1_data = chainer.Variable(loc_t1, volatile = volatile)
-    loc_t2_data = chainer.Variable(loc_t2, volatile = volatile)
-    loc_t3_data = chainer.Variable(loc_t3, volatile = volatile)
-    loc_t4_data = chainer.Variable(loc_t4, volatile = volatile)
-    loc_t5_data = chainer.Variable(loc_t5, volatile = volatile)
-    loc_t6_data = chainer.Variable(loc_t6, volatile = volatile)
+    loc_t1_data = chainer.Variable(loc_t1)
+    loc_t2_data = chainer.Variable(loc_t2)
+    loc_t3_data = chainer.Variable(loc_t3)
+    loc_t4_data = chainer.Variable(loc_t4)
+    loc_t5_data = chainer.Variable(loc_t5)
+    loc_t6_data = chainer.Variable(loc_t6)
 
     # 1〜6階層目の教示localization mapの次元を(バッチ数, オフセット次元数 * DF box数, 高さ, 幅)から(バッチ数, 高さ, 幅, オフセット次元数 * DF box数)に転置
     loc_t1_data = F.transpose(loc_t1_data, [0, 2, 3, 1])
@@ -390,6 +390,9 @@ input_list = np.array(input_list)
 #　学習データ数
 N = len(input_list)
 print ('Training samples : ', N)
+itr_loss_save = int((float(N) / float(batchsize)) * 0.1) * 10
+print ('Training samples per batchsize : ', float(N) / float(batchsize))
+print ('Iteration save : ', itr_loss_save)
 
 ssd_model.train = True
 
@@ -413,9 +416,6 @@ if not path.exists(save_model_path):
 if not path.exists(save_optimizer_path):
     os.mkdir(save_optimizer_path)
 
-itr_loss_save = int((float(N) / float(batchsize)) * 0.1) * 10
-print ('Training samples per batchsize : ', float(N) / float(batchsize))
-print ('Iteration save : ', itr_loss_save)
 
 data_q = queue.Queue(maxsize=1)
 res_q = queue.Queue()
@@ -430,7 +430,7 @@ def feed_data():
     data_q.put('train')
 
     # エポックループ
-    for epoch in xrange(0, n_epoch):
+    for epoch in range(0, n_epoch):
 
         # changing learning rate (common_params.learning_rate * (common_params.lr_step ** (n_epoch - common_params.lr_change_epoch)))
         if (epoch + 1) >= common_params.lr_change_epoch:
@@ -442,7 +442,7 @@ def feed_data():
         perm = np.random.permutation(N)
 
         # 学習サンプルのループ
-        for dt in xrange(0, N):
+        for dt in range(0, N):
 
             x_list = input_list[perm[dt]]
 
@@ -531,9 +531,9 @@ def train_loop():
         img_batch, gt_box_batch, df_box_batch, idx_batch, cls_batch, conf_img_batch, epoch_num = input_data
 
         # ---教師ラベル確認用(画像の確認が不要な場合は以下14行をコメントアウト)----------------------------------
-        # for b in xrange(0, len(conf_img_batch)):
+        # for b in range(0, len(conf_img_batch)):
         #     font = cv.FONT_HERSHEY_SIMPLEX
-        #     for bx in xrange(len(gt_box_batch[b]) - 1, 0, -1):
+        #     for bx in range(len(gt_box_batch[b]) - 1, 0, -1):
         #       p1 = int(gt_box_batch[b][bx][0] * common_params.insize)
         #       p2 = int(gt_box_batch[b][bx][1] * common_params.insize)
         #       p3 = int(gt_box_batch[b][bx][2] * common_params.insize)
@@ -549,10 +549,9 @@ def train_loop():
 
         bat_s = len(img_batch)
 
-        optimizer.zero_grads()
+        ssd_model.cleargrads()
 
-        volatile = 'off' if ssd_model.train else 'on'
-        train_img = chainer.Variable(xp.array(img_batch), volatile = volatile)
+        train_img = chainer.Variable(xp.array(img_batch))
 
         # SSD net forward
         Loc1, Cls1, Loc2, Cls2, Loc3, Cls3, Loc4, Cls4, Loc5, Cls5, Loc6, Cls6 = ssd_model(train_img)
@@ -570,8 +569,7 @@ def train_loop():
             mining = False
 
         # lossを計算
-        loss = lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, volatile)
-
+        loss = lossFunction(Loc, Cls, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining)
         loss.backward()
 
         optimizer.update()

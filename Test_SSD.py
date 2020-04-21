@@ -43,15 +43,15 @@ def mboxSoftmax(confidence_maps, num_classes, num_boxes):
 
     bs = 0
     be = num_classes
-    for b in xrange(0, num_boxes):
+    for b in range(0, num_boxes):
 
         t = confidence_maps[bs : be, :, :]
 
         total = 0
-        for i in xrange(0, t.shape[0]):
+        for i in range(0, t.shape[0]):
             total += xp.exp(t[i, :, :])
 
-        for i in xrange(0, t.shape[0]):
+        for i in range(0, t.shape[0]):
             s[bs + i, :, :] = xp.exp(t[i, :, :]) / total
 
         bs = be
@@ -75,7 +75,7 @@ def multiBoxDetection(cls_score_maps, localization_maps, num_dbox, min_size, max
     img_height = common_params.insize
 
     map_size = cls_score_maps.shape[1] * cls_score_maps.shape[2]
-    for i in xrange(0, map_size):
+    for i in range(0, map_size):
 
         c = int(i % cls_score_maps.shape[1])
         r = int(i / cls_score_maps.shape[1])
@@ -86,7 +86,7 @@ def multiBoxDetection(cls_score_maps, localization_maps, num_dbox, min_size, max
 
         bs = 0
         be = num_class
-        for b in xrange(0, num_dbox):
+        for b in range(0, num_dbox):
 
             max_val = np.max(cls_score_maps[bs : be, r, c])
             max_idx = int(np.argmax(cls_score_maps[bs : be, r, c]))
@@ -170,7 +170,7 @@ def candidatesDetection(offsets, default_boxes, class_labels, class_scores, colo
 
     candidates = []
 
-    for det in xrange(0, len(class_labels)):
+    for det in range(0, len(class_labels)):
 
         pred_xmin = (default_boxes[det][0] + offsets[det][0] * common_params.loc_var)
         pred_ymin = (default_boxes[det][1] + offsets[det][1] * common_params.loc_var)
@@ -221,9 +221,9 @@ def nonMaximumSuppresion(candidates):
     box_num = len(candidates)
 
     js = 0
-    for j in xrange(0, box_num):
+    for j in range(0, box_num):
         ks = js + 1
-        for k in xrange(j + 1, box_num):
+        for k in range(j + 1, box_num):
 
             if ks >= len(candidates) or js >= len(candidates):
                 continue
@@ -276,7 +276,7 @@ step = int(math.floor((common_params.max_ratio - common_params.min_ratio) / (len
 min_sizes = []
 max_sizes = []
 
-for ratio in xrange(common_params.min_ratio, common_params.max_ratio + 1, step):
+for ratio in range(common_params.min_ratio, common_params.max_ratio + 1, step):
     min_sizes.append(common_params.insize * ratio / 100.)
     max_sizes.append(common_params.insize * (ratio + step) / 100.)
 
@@ -351,17 +351,17 @@ for ls in img_list:
 
     # 各階層のbounding box候補を統合
     all_candidate = []
-    for j in xrange(0, len(candidates1)):
+    for j in range(0, len(candidates1)):
         all_candidate.append(candidates1[j])
-    for j in xrange(0, len(candidates2)):
+    for j in range(0, len(candidates2)):
         all_candidate.append(candidates2[j])
-    for j in xrange(0, len(candidates3)):
+    for j in range(0, len(candidates3)):
         all_candidate.append(candidates3[j])
-    for j in xrange(0, len(candidates4)):
+    for j in range(0, len(candidates4)):
         all_candidate.append(candidates4[j])
-    for j in xrange(0, len(candidates5)):
+    for j in range(0, len(candidates5)):
         all_candidate.append(candidates5[j])
-    for j in xrange(0, len(candidates6)):
+    for j in range(0, len(candidates6)):
         all_candidate.append(candidates6[j])
 
     # non-maximum suppresionによりbounding boxの最終結果を出力
@@ -382,7 +382,7 @@ for ls in img_list:
 
     f = open(output_dir + '/' + file_name + ".txt", 'w') # 結果書き出し用
     # 検出したbounding boxを画像に描画
-    for i in xrange(0, len(final_detections)):
+    for i in range(0, len(final_detections)):
         class_name = labels[final_detections[i][4]]
         cls_bgr = class_color[final_detections[i][4]]
         string_space_cls = 260

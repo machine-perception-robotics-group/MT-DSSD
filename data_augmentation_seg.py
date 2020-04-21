@@ -13,7 +13,7 @@ def lookupColorTable(color_steps):
 
     class_color = []
 
-    for i in xrange(0, len(color_steps)):
+    for i in range(0, len(color_steps)):
 
         if color_steps[i] < 63:
             b = 255
@@ -46,7 +46,7 @@ def BGR_2_HSV(img):
 
     n = img.shape[0] * img.shape[1]
 
-    for k in xrange(0, n):
+    for k in range(0, n):
         x = int(k % img.shape[1])
         y = int(k / img.shape[1])
         b = img[y, x, 0]
@@ -86,7 +86,7 @@ def HSV_2_BGR(img):
 
     n = img.shape[0] * img.shape[1]
 
-    for k in xrange(0, n):
+    for k in range(0, n):
         x = int(k % img.shape[1])
         y = int(k / img.shape[1])
         h = img[y, x, 0]
@@ -417,7 +417,7 @@ def augmentation(img, idx, gt_boxes):
     arg_boxes = []
     arg_idx = []
 
-    for i in xrange(0, len(gt_boxes)):
+    for i in range(0, len(gt_boxes)):
 
         gt_xmin = gt_boxes[i][0] / common_params.insize
         gt_ymin = gt_boxes[i][1] / common_params.insize

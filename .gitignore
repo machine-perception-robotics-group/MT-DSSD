@@ -117,3 +117,13 @@ models/
 out/
 
 pretrained_model/\.DS_Store
+
+seglabel_name_list\.txt
+
+img_name_list\.txt
+
+depth_name_list\.txt
+
+augimg_name_list\.txt
+
+pytorch/pretrained_model/

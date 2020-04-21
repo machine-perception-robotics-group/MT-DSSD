@@ -13,10 +13,17 @@
 - MultiTask DSSD(MT-DSSD)[2, 3]
 
 # Requirement
-- Python 2.x (Recommended version >= 2.7.11)
+- Python 3.x
 - OpenCV 2.x
-- Chainer 1.x (Recommended version == 1.7.0)
-- numpy (Recommended version >= 1.10)
+- Chainer 5.x
+- numpy
+
+# Docker実行例：
+```
+cd Docker
+sudo nvidia-docker build ./ -t cuda92_chainer5_1:latest
+sudo nvidia-docker run --shm-size 8G -it -v /home/ryorsk:/home/ryorsk cuda92_chainer5_1:latest
+```
 
 # Usage
 

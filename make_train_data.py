@@ -46,7 +46,7 @@ min_sizes = []
 max_sizes = []
 
 # Default boxの最小・最大サイズを計算
-for ratio in xrange(common_params.min_ratio, common_params.max_ratio + 1, step):
+for ratio in range(common_params.min_ratio, common_params.max_ratio + 1, step):
     min_sizes.append(common_params.insize * ratio / 100.)
     max_sizes.append(common_params.insize * (ratio + step) / 100.)
 
@@ -97,7 +97,7 @@ for fl in lists:
     # 画像をSSDの入力サイズにリサイズ
     original_img = cv.resize(original_img, (common_params.insize, common_params.insize), interpolation = cv.INTER_CUBIC)
 
-    for ag in xrange(0, common_params.augmentation_factor):
+    for ag in range(0, common_params.augmentation_factor):
 
         input_img = original_img.copy()
         idx = original_idx #クラス
@@ -108,7 +108,7 @@ for fl in lists:
 
         # ---Augmentation画像の確認が不要な場合は以下9行をコメントアウト------------
         out2 = input_img.copy()
-        for bx in xrange(0, len(gt_boxes)):
+        for bx in range(0, len(gt_boxes)):
             p1 = int(gt_boxes[bx][0])
             p2 = int(gt_boxes[bx][1])
             p3 = int(gt_boxes[bx][2])
@@ -155,13 +155,13 @@ for fl in lists:
             fout_aug.write(out_line)
 
         # 特徴マップのループ
-        for j in xrange(0, len(common_params.map_sizes)):
+        for j in range(0, len(common_params.map_sizes)):
 
             # 特徴マップのピクセル数
             map_dim = common_params.map_sizes[j] * common_params.map_sizes[j]
 
             # 特徴マップの位置のループ
-            for k in xrange(0, map_dim):
+            for k in range(0, map_dim):
 
                 # 特徴マップの位置(x, y)
                 c = int(k % common_params.map_sizes[j])
@@ -171,7 +171,7 @@ for fl in lists:
                 center_y = float((r + 0.5) * common_params.steps[j])
 
                 # DF boxのループ
-                for l in xrange(0, common_params.num_boxes[j]):
+                for l in range(0, common_params.num_boxes[j]):
 
                     # 1〜6番目のDefault boxの右上座標と左上座標を計算
                     if l == 0:
@@ -225,7 +225,7 @@ for fl in lists:
                     df_box = [xmin, ymin, xmax, ymax]
 
                     # GT boxのループ
-                    for i in xrange(0, len(gt_boxes)):
+                    for i in range(0, len(gt_boxes)):
 
                         # Default boxとGround truth boxの重なり率を計算
                         overlap = jaccardOverlap(gt_boxes[i], df_box)

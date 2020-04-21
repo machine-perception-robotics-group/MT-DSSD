@@ -124,7 +124,7 @@ min_sizes = []
 max_sizes = []
 
 # Default boxの最小・最大サイズを計算
-for ratio in xrange(common_params.min_ratio, common_params.max_ratio + 1, step):
+for ratio in range(common_params.min_ratio, common_params.max_ratio + 1, step):
     min_sizes.append(common_params.insize * ratio / 100.)
     max_sizes.append(common_params.insize * (ratio + step) / 100.)
 
@@ -251,7 +251,7 @@ def readTrainData(input_name, input_seglabel_name, confing_image):
 
     perm = np.random.permutation(len(idx_tmp))
 
-    for hn in xrange(0, hardneg_size):
+    for hn in range(0, hardneg_size):
         indices.append(idx_tmp[perm[hn]])
 
     # segmentationのignore class(255)を-1にする
@@ -292,8 +292,8 @@ def lossFunction(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch
     loc_t5 = np.zeros((bat_s, common_params.num_boxes[4] * common_params.num_of_offset_dims, common_params.map_sizes[4], common_params.map_sizes[4]), np.float32)
     loc_t6 = np.zeros((bat_s, common_params.num_boxes[5] * common_params.num_of_offset_dims, common_params.map_sizes[5], common_params.map_sizes[5]), np.float32)
 
-    for b in xrange(0, len(idx_batch)):
-        for i in xrange(0, len(idx_batch[b])):
+    for b in range(0, len(idx_batch)):
+        for i in range(0, len(idx_batch[b])):
 
             fmap_layer = idx_batch[b][i][1]
             fmap_position = idx_batch[b][i][2]
@@ -394,17 +394,6 @@ def lossFunction(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch
     # 1〜6階層目の教示localization mapを結合
     Loc_T = F.concat([loc_t1_data, loc_t2_data, loc_t3_data, loc_t4_data, loc_t5_data, loc_t6_data], axis = 0)
 
-
-    #np.set_printoptions(threshold=np.inf)
-    #print(Cls.data.shape)
-    #print(Cls_T.data.shape)
-    #print(Cls.data)
-    #print(Cls_T.data)
-    #print(Seg.data.shape)
-    #print(seg_label.data.shape)
-    #print(Seg.data)
-    #print(seg_label.data)
-
     # confidence mapのloss
     loss_cls = F.softmax_cross_entropy(Cls, Cls_T)
     #loss_cls = loss_cls * 0.4
@@ -419,9 +408,6 @@ def lossFunction(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch
 
     #segmentationのloss
     loss_seg = F.softmax_cross_entropy(Seg, seg_label)
-    #loss_seg = loss_seg * 0.1
-
-    #print(str(loss_cls) + ' ' + str(loss_loc) + ' ' + str(loss_seg))
 
     # nanのチェック
     if math.isnan(loss_cls.data):
@@ -484,6 +470,8 @@ input_seglabel_list = np.array(input_seglabel_list)
 N = len(input_list) #リストのサイズを取得
 print ('Training samples : ', N)
 print ('Segmentation samples : ', len(input_seglabel_list))
+print ('Training samples per batchsize : ', float(N) / float(batchsize))
+print ('Iteration save : ', itr_loss_save)
 
 ssd_model.train = True
 
@@ -526,7 +514,7 @@ def feed_data():
     data_q.put('train') #trainをqueueに入れる
 
     # エポックループ
-    for epoch in xrange(0, n_epoch):
+    for epoch in range(0, n_epoch):
 
         # changing learning rate (common_params.learning_rate * (common_params.lr_step ** (n_epoch - common_params.lr_change_epoch)))
         if (epoch + 1) >= common_params.lr_change_epoch:
@@ -538,7 +526,7 @@ def feed_data():
         perm = np.random.permutation(N) #学習サンプルのシャッフル
 
         # 学習サンプルのループ
-        for dt in xrange(0, N):
+        for dt in range(0, N):
 
             x_list = input_list[perm[dt]]   #画像リスト
             seglabel_x_list = input_seglabel_list[perm[dt]] #セグメンテーションLABEL画像リスト
@@ -633,9 +621,9 @@ def train_loop():
 
 
         # ---教師ラベル確認用(画像の確認が不要な場合は以下14行をコメントアウト)----------------------------------
-        #for b in xrange(0, len(conf_img_batch)):
+        #for b in range(0, len(conf_img_batch)):
         #     font = cv.FONT_HERSHEY_SIMPLEX
-        #     for bx in xrange(len(gt_box_batch[b]) - 1, 0, -1):
+        #     for bx in range(len(gt_box_batch[b]) - 1, 0, -1):
         #       p1 = int(gt_box_batch[b][bx][0] * common_params.insize)
         #       p2 = int(gt_box_batch[b][bx][1] * common_params.insize)
         #       p3 = int(gt_box_batch[b][bx][2] * common_params.insize)
@@ -651,7 +639,7 @@ def train_loop():
 
         bat_s = len(img_batch)
 
-        optimizer.zero_grads()  #勾配を0に初期化
+        ssd_model.cleargrads()  #勾配を0に初期化
 
         train_img = chainer.Variable(xp.array(img_batch))
         seg_label = chainer.Variable(xp.array(input_seglabel_batch, np.int32))
@@ -687,7 +675,6 @@ def train_loop():
 
         # lossを計算
         loss = lossFunction(Loc, Cls, Seg, gt_box_batch, df_box_batch, idx_batch, cls_batch, bat_s, mining, seg_label)
-
         loss.backward()
 
         optimizer.update()
