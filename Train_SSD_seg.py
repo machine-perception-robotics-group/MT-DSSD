@@ -73,12 +73,16 @@ parser.add_argument('--epoch', '-E', default = 150, type = int, help='Number of 
 parser.add_argument('--gpu', '-g', default = 0, type = int, help='GPU ID (negative value indicates CPU)')  #引数の追加
 parser.add_argument('--loaderjob', '-j', default = 4, type=int, help='Number of parallel data loading processes')   #引数の追加
 parser.add_argument('--segmentignore', '-s', default = 0, type=int, help='Even if segmentation image is not found, continue learning (1:True/0:False)')   #引数の追加
+parser.add_argument('--suffix', '-S', default = "", type=str, help='Suffix of model saving directory')   #引数の追加
 args = parser.parse_args()  #引数を解析
 
 #GPUが使えるか確認
 if args.gpu >= 0:
     cuda.check_cuda_available()
 xp = cuda.cupy if args.gpu >= 0 else np
+
+#1000iterationごとにlossを保存
+itr_loss_save = 1000
 
 #VGGNetの読み込み
 print('VGG Netの読み込み中...')
@@ -477,7 +481,7 @@ ssd_model.train = True
 
 today = datetime.datetime.today()   #日付を取得
 
-today_dir = str(today.year) + '-' + str('%02d' % today.month) + '-' + str('%02d' % today.day) + '@' + str('%02d' % today.hour) + '-' + str('%02d' % today.minute) + '-' + str('%02d' % today.second)
+today_dir = str(today.year) + '-' + str('%02d' % today.month) + '-' + str('%02d' % today.day) + '@' + str('%02d' % today.hour) + '-' + str('%02d' % today.minute) + '-' + str('%02d' % today.second) + '_' + args.suffix
 
 today_dir_path = common_params.save_model_dir + '/' + today_dir
 
@@ -497,9 +501,6 @@ if not path.exists(save_model_path):
 
 if not path.exists(save_optimizer_path):
     os.mkdir(save_optimizer_path)
-
-#1000iterationごとにlossを保存
-itr_loss_save = 1000
 
 data_q = queue.Queue(maxsize=1) #FIFOキューのコンストラクタ　maxsizeは、キューに入れることができる項目数の上限を設定する整数で0以下で無限大
 res_q = queue.Queue()

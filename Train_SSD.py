@@ -71,6 +71,7 @@ parser.add_argument('--batchsize', '-B', type = int, default = 8, help = 'Learni
 parser.add_argument('--epoch', '-E', default = 80, type = int, help='Number of epochs to learn')
 parser.add_argument('--gpu', '-g', default = -1, type = int, help='GPU ID (negative value indicates CPU)')
 parser.add_argument('--loaderjob', '-j', default = 4, type=int, help='Number of parallel data loading processes')
+parser.add_argument('--suffix', '-S', default = "", type=str, help='Suffix of model saving directory')
 args = parser.parse_args()
 
 if args.gpu >= 0:
@@ -398,7 +399,7 @@ ssd_model.train = True
 
 today = datetime.datetime.today()
 
-today_dir = str(today.year) + '-' + str('%02d' % today.month) + '-' + str('%02d' % today.day) + '@' + str('%02d' % today.hour) + '-' + str('%02d' % today.minute) + '-' + str('%02d' % today.second)
+today_dir = str(today.year) + '-' + str('%02d' % today.month) + '-' + str('%02d' % today.day) + '@' + str('%02d' % today.hour) + '-' + str('%02d' % today.minute) + '-' + str('%02d' % today.second) + '_' + args.suffix
 
 today_dir_path = common_params.save_model_dir + '/' + today_dir
 

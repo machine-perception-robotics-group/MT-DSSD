@@ -14,9 +14,11 @@
 
 # Requirement
 - Python 3.x
-- OpenCV 2.x
+- CUDA 8.x or 9.x
+- OpenCV 2.x or 3.x
 - Chainer 5.x
 - numpy
+- numba
 
 # Docker実行例：
 ```
@@ -45,12 +47,11 @@ images_dir = '<Your dataset path>'
 ```
 
 ### 3. データセットのディレクトリ追加
-データセットのディレクトリ内に，必要な空ディレクトリを作成します．
-`mkdirs.sh`を実行することで作成できます．引数にデータセットのパスを与えてください．
+※プログラム実行時にディレクトリを追加するようになったため，この手順は不要です．
 
-```
-sh mkdirs.sh <Your Dataset Path>
-```
+~データセットのディレクトリ内に，必要な空ディレクトリを作成します．
+`mkdirs.sh`を実行することで作成できます．引数にデータセットのパスを与えてください．~
+
 
 ### 4. 教師データ一覧の取得
 `make_list.py`に，引数`--mode 0`を与えて実行します．

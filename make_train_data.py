@@ -35,10 +35,17 @@ def jaccardOverlap(bbox1, bbox2):
 
     return overlap
 
+# Augmentation画像の確認 (Xserverがない環境ではFalseにする)
+visible = False
 
 # 重なり率の閾値 (閾値以上の重なり率のDefault boxはpositiveとする)
 ovarlap_th = 0.5
 
+for dir_name in ["positives", "negatives", "img_aug_param", "seglabel_aug_param"]:
+    dir_path = path.join(common_params.images_dir, "train", dir_name)
+    if not path.exists(dir_path):
+        os.mkdir(dir_path)
+        print("mkdir " + dir_path)
 
 step = int(math.floor((common_params.max_ratio - common_params.min_ratio) / (len(common_params.mbox_source_layers) - 2)))
 
@@ -106,18 +113,17 @@ for fl in lists:
         if (ag >= 1):
             input_img, idx, gt_boxes, border_pixels, crop_param, hsv_param, flip_type = augmentation(input_img, idx, gt_boxes)
 
-        # ---Augmentation画像の確認が不要な場合は以下9行をコメントアウト------------
-        out2 = input_img.copy()
-        for bx in range(0, len(gt_boxes)):
-            p1 = int(gt_boxes[bx][0])
-            p2 = int(gt_boxes[bx][1])
-            p3 = int(gt_boxes[bx][2])
-            p4 = int(gt_boxes[bx][3])
-            cv.rectangle(out2, (p1, p2), (p3, p4), (0, 255, 0), 2)
+        if visible:
+            out2 = input_img.copy()
+            for bx in range(0, len(gt_boxes)):
+                p1 = int(gt_boxes[bx][0])
+                p2 = int(gt_boxes[bx][1])
+                p3 = int(gt_boxes[bx][2])
+                p4 = int(gt_boxes[bx][3])
+                cv.rectangle(out2, (p1, p2), (p3, p4), (0, 255, 0), 2)
 
-        cv.imshow('Augmentation', out2)
-        cv.waitKey(10)
-        # ----------------------------------------------------------------
+            cv.imshow('Augmentation', out2)
+            cv.waitKey(10)
 
         img_width = input_img.shape[1]
         img_height = input_img.shape[0]
