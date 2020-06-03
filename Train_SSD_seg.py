@@ -28,7 +28,8 @@ import chainer.functions as F
 from glob import glob
 from os import path
 
-import cPickle
+#import cPickle
+import _pickle as cPickle
 import cv2 as cv
 
 import common_params
@@ -36,6 +37,7 @@ from data_augmentation_seg import trainAugmentation
 from my_func import SumSquaredError
 from my_func import sum_squared_error
 
+cv.CV_AA = cv.LINE_AA
 
 def copy_model(src, dst):   #src:vgg_model dst:ssd_model
     assert isinstance(src, link.Chain)  #assert:条件式がfalseの場合、AssertionErrorが発生　isinstance:一つ目にオブジェクト、二つ目にクラスを受け取り、一つ目に渡したオブジェクトが二つ目のクラスのインスタンスならTrueを返す

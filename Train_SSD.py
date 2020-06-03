@@ -28,13 +28,16 @@ import chainer.functions as F
 from glob import glob
 from os import path
 
-import cPickle
+#import cPickle
+import _pickle as cPickle
 import cv2 as cv
 
 import common_params
 from data_augmentation import trainAugmentation
 from my_func import SumSquaredError
 from my_func import sum_squared_error
+
+cv.CV_AA = cv.LINE_AA
 
 def copy_model(src, dst):
     assert isinstance(src, link.Chain)

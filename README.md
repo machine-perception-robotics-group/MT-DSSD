@@ -56,7 +56,7 @@ images_dir = '<Your dataset path>'
 ### 4. 教師データ一覧の取得
 `make_list.py`に，引数`--mode 0`を与えて実行します．
 ```
-python make_list.py --mode 0
+python3 make_list.py --mode 0
 ```
 `img_name_list.txt`に教師データのファイル名一覧が保存されます．
 
@@ -64,13 +64,13 @@ python make_list.py --mode 0
 本コードは学習前に予めData augmentationを行い，変換パラメータを保存します．
 `make_train_data.py`を実行して，Data augmentationを開始します．
 ```
-python make_train_data.py
+python3 make_train_data.py
 ```
 
 ### 6. Data augmentation後の教師データ一覧の取得
 `make_list.py`に，引数`--mode 1`を与えて実行します．
 ```
-python make_list.py --mode 1
+python3 make_list.py --mode 1
 ```
 `augimg_name_list.txt`にData augmentation後の教師データのファイル名一覧が保存されます．
 
@@ -81,7 +81,7 @@ python make_list.py --mode 1
 `Train_SSD.py`を実行して下さい．メモリサイズが足りない旨のエラーが出た場合は，`batchsize`を小さくしてください．
 
 ```
-python Train_SSD.py --batchsize 12 --epoch 150 --gpu 0 --loaderjob 8
+python3 Train_SSD.py --batchsize 12 --epoch 150 --gpu 0 --loaderjob 8
 ```
 
 下記の引数を与えることができます．
@@ -102,7 +102,7 @@ serializers.load_npz('<Your Trained Model Path>', ssd_model)
 続いて，`Test_SSD.py`を実行して下さい．指定されたパスにある指定された拡張子の画像すべてを用いてテストを行います．
 
 ```
-python Test_SSD.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --type '.png' --gpu 0
+python3 Test_SSD.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --type '.png' --gpu 0
 ```
 
 下記の引数を与えることができます．
@@ -119,19 +119,19 @@ python Test_SSD.py --dir '<Your Dataset Path>/test_known/rgb' --out './out' --ty
 セグメンテーション画像を学習用に変換する必要があります．
 `convertC2G_fast.py`を実行してください．
 ```
-python convertC2G_fast.py
+python3 convertC2G_fast.py
 ```
 
 ### 8. セグメンテーション画像のファイル名取得
 Data augmentation後の教師データとセグメンテーション教師データを紐付けるファイルを作成するために，`make_seglabel_aug_param.py`を実行します．
 ```
-python make_seglabel_aug_param.py
+python3 make_seglabel_aug_param.py
 ```
 
 ### 9. セグメンテーション画像ファイル名の一覧取得
 `make_list.py`に，引数`--mode 3`を与えて実行します．
 ```
-python make_list.py --mode 3
+python3 make_list.py --mode 3
 ```
 `seglabel_name_list.txt`に手順8で作成したファイルの名前一覧が保存されます．
 
@@ -139,7 +139,7 @@ python make_list.py --mode 3
 `Train_SSD_seg.py`を実行して下さい．メモリサイズが足りない旨のエラーが出た場合は，`batchsize`を小さくしてください．
 
 ```
-python Train_SSD_seg.py --batchsize 8 --epoch 150 --gpu 0 --loaderjob 8
+python3 Train_SSD_seg.py --batchsize 8 --epoch 150 --gpu 0 --loaderjob 8
 ```
 
 ### 11. テスト
@@ -154,7 +154,7 @@ MODEL_PATH = "`<Your Trained Model Path>"
 続いて，`Test_SSD_seg_fast.py`を実行して下さい．指定されたパスにある指定された拡張子の画像すべてを用いてテストを行います．
 
 ```
-python Test_SSD_seg_fast.py --indir '<Your Dataset Path>/test_known/rgb' --outdir './out' --type '.png' --gpu 0
+python3 Test_SSD_seg_fast.py --indir '<Your Dataset Path>/test_known/rgb' --outdir './out' --type '.png' --gpu 0
 ```
 下記の引数を与えることができます．
 - `--webcam` (default = -1) : 1を指定するとWebCamから得られる画像を用いてリアルタイム検出を行います．

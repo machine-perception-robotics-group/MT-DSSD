@@ -14,10 +14,10 @@ def normalImageListGeneration():
     fout = open('./img_name_list.txt', 'w')
 
     lists = glob(path.join(common_params.images_dir + '/train/boundingbox/' , '*'))
-    print len(lists)
+    print(len(lists))
 
     for fl in lists:
-        print fl
+        print(fl)
         items = fl.split('/')
         file_name, ext = os.path.splitext(items[-1])
         out_line = '{}\n'.format(file_name)
@@ -29,10 +29,10 @@ def augmentedImageListGeneration():
     fout = open('./augimg_name_list.txt', 'w')
 
     lists = glob(path.join(common_params.images_dir + '/train/img_aug_param/', '*'))
-    print len(lists)
+    print(len(lists))
 
     for fl in lists:
-        print fl
+        print(fl)
         items = fl.split('/')
         file_name, ext = os.path.splitext(items[-1])
         out_line = '{}\n'.format(file_name)
@@ -44,10 +44,10 @@ def segmentationImageListGeneration():
     fout = open('./segimg_name_list.txt', 'w')
 
     lists = glob(path.join(common_params.images_dir + '/train/segimg_aug_param/', '*'))
-    print len(lists)
+    print(len(lists))
 
     for fl in lists:
-        print fl
+        print(fl)
         items = fl.split('/')
         file_name, ext = os.path.splitext(items[-1])
         out_line = '{}\n'.format(file_name)
@@ -59,10 +59,10 @@ def segmentationLabelListGeneration():
     fout = open('./seglabel_name_list.txt', 'w')
 
     lists = glob(path.join(common_params.images_dir + '/train/seglabel_aug_param/', '*'))
-    print len(lists)
+    print(len(lists))
 
     for fl in lists:
-        print fl
+        print(fl)
         items = fl.split('/')
         file_name, ext = os.path.splitext(items[-1])
         out_line = '{}\n'.format(file_name)
@@ -73,10 +73,10 @@ def depthImageListGeneration():
     fout = open('./depth_name_list.txt', 'w')
 
     lists = glob(path.join(common_params.images_dir + '/train/depth_aug_param/', '*'))
-    print len(lists)
+    print(len(lists))
 
     for fl in lists:
-        print fl
+        print(fl)
         items = fl.split('/')
         file_name, ext = os.path.splitext(items[-1])
         out_line = '{}\n'.format(file_name)

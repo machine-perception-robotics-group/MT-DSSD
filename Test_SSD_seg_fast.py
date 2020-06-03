@@ -10,7 +10,8 @@ from chainer import cuda
 from chainer import Variable
 from chainer import serializers
 import time
-import cPickle
+#import cPickle
+import _pickle as cPickle
 import cv2 as cv
 import sys
 import math

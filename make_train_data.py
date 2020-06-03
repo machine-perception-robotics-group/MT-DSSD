@@ -66,8 +66,8 @@ b = 1
 # アノテーションファイルのループ
 for fl in lists:
 
-    print fl
-    print b
+    print(fl)
+    print(b)
     b += 1
 
     fname = fl[0:-1]

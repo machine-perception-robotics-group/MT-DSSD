@@ -7,7 +7,8 @@ from chainer import cuda
 from chainer import Variable
 from chainer import serializers
 import time
-import cPickle
+#import cPickle
+import _pickle as cPickle
 import cv2 as cv
 import sys
 import math
@@ -17,6 +18,8 @@ from os import path
 import os
 
 import common_params
+
+cv.CV_AA = cv.LINE_AA
 
 # クラスラベル (クラス名にはスペース(空白)は禁止)
 labels = common_params.arc_labels
