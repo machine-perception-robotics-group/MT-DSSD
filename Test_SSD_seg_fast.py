@@ -366,7 +366,7 @@ def saveDetection(final_detections, out_img, filename):
     font = cv.FONT_HERSHEY_SIMPLEX
     for i in range(0, len(final_detections)):
             class_name = labels[i]
-            color = class_color[i]
+            color = class_color[i].tolist()
             for j in range(0, len(final_detections[i])):
                 p1 = int(final_detections[i][j][0] + offset_)
                 p2 = int(final_detections[i][j][1] + offset_)

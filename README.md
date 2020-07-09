@@ -14,8 +14,8 @@
 
 # Requirement
 - Python 3.x
-- CUDA 8.x or 9.x
-- OpenCV 2.x or 3.x
+- CUDA 8.x - 10.x
+- OpenCV 3.x
 - Chainer 5.x
 - numpy
 - numba

@@ -387,7 +387,7 @@ for ls in img_list:
     # 検出したbounding boxを画像に描画
     for i in range(0, len(final_detections)):
         class_name = labels[final_detections[i][4]]
-        cls_bgr = class_color[final_detections[i][4]]
+        cls_bgr = class_color[final_detections[i][4]].tolist()
         string_space_cls = 260
         string_space_obj = 170
         p1 = int(final_detections[i][0] + offset_)
